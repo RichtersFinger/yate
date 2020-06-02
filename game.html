@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link href='https://fonts.googleapis.com/css?family=Cinzel Decorative' rel='stylesheet'>
+ <!-- <link href='font/CinzelDecorative' rel='stylesheet'>-->
+<script type="text/javascript" src="lib/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+ 
+ 
+ <!-- Context menu https://swisnl.github.io/jQuery-contextMenu/ -->
+<script src="lib/jquery.contextMenu.js"></script>
+<script src="lib/jquery.ui.position.min.js"></script>
+<script type="text/javascript" src="lib/circletype.min.js"></script>
+<link rel="stylesheet" href="lib/jquery.contextMenu.min.css">
+
+<style>
+	body{ background-color: white; overflow: hidden; display: block; font-family: 'Cinzel Decorative';font-size: 18px;}
+	canvas{border:1px solid black; background-color: white;}
+	.loader {
+	  border: 8px solid #f3f3f3;
+	  border-radius: 50%;
+	  border-top: 8px solid #3498db;
+	  border-bottom: 8px solid #3498db;
+	  width: 120px;
+	  height: 120px;
+	  -webkit-animation: spin 2s linear infinite; /* Safari */
+	  animation: spin 2s linear infinite;
+	}
+
+	/* Safari */
+	@-webkit-keyframes spin {
+	  0% { -webkit-transform: rotate(0deg); }
+	  100% { -webkit-transform: rotate(360deg); }
+	}
+	
+	.disabledtext {
+	  color: #cccccc;
+	}
+	
+	.nowrap {
+		white-space: nowrap;
+	}
+	.noselect {
+		-webkit-touch-callout: none; /* iOS Safari */
+		  -webkit-user-select: none; /* Safari */
+		   -khtml-user-select: none; /* Konqueror HTML */
+		     -moz-user-select: none; /* Old versions of Firefox */
+		      -ms-user-select: none; /* Internet Explorer/Edge */
+		          user-select: none; /* Non-prefixed version, currently
+			    supported by Chrome, Opera and Firefox */
+	}
+
+	@keyframes spin {
+	  0% { transform: rotate(0deg); }
+	  100% { transform: rotate(360deg); }
+	}
+	
+	.fancybutton {
+	  background-color: #555555;
+	  border: none;
+	  color: white;
+	  padding: 15px 32px;
+	  text-align: center;
+	  text-decoration: none;
+	  display: inline-block;
+	  font-size: 16px;
+	}
+	.fancybutton:active {
+	  background-color: #888888;
+	  transform: translateY(2px);
+	}
+	
+	.autocomplete {
+	  /*the container must be positioned relative:*/
+	  position: relative;
+	  display: inline-block;
+	}
+	.autocomplete-items {
+	  font: Arial;
+	  font-family:  sans-serif;
+	  font-size: 13px;
+	  position: absolute;
+	  border: 1px solid #d4d4d4;
+	  border-bottom: none;
+	  border-top: none;
+	  z-index: 99;
+	  /*position the autocomplete items to be the same width as the container:*/
+	  top: 100%;
+	  left: 0;
+	  right: 0;
+	}
+	.autocomplete-items div {
+	  padding: 2px;
+	  cursor: pointer;
+	  background-color: #fff;
+	  border-bottom: 1px solid #d4d4d4;
+	}
+	strong {
+	  font-weight: bold;
+	  font-size: 14px;
+	  color: #3562de;
+	}
+	.autocomplete-items div:hover {
+	  /*when hovering an item:*/
+	  background-color: #e9e9e9;
+	}
+	.autocomplete-active {
+	  /*when navigating through the items using the arrow keys:*/
+	  background-color: DodgerBlue !important;
+	  color: #ffffff;
+	}
+</style>
+
+
+</head>
+
+<body>
+    <input type="file" id="fileinputdialog" style="display:none">
+    <div id="loaderdiv" style="background-color: lightgrey; position: fixed; bottom: 0; right: 0; width: 50px; height: 50px; overflow: hidden; visibility: hidden; z-index: 500"></div>
+    <div id="gamediv" style="background-color: grey; position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;" class="game_context_menu btn btn-neutral">
+	    <div id="colorinputdivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
+		    <div id="colorinputdiv" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: absolute; top: 0; left: 0; width: 200px; padding: 1.0%; overflow: hidden; border: 3px solid #ffffff">
+			<input id="colorinput" class="jscolor {position:'right', hash:true, uppercase:false}" value="ab2567" style="width: 98%"><br><br>
+			<button id="colorinput_bapply" type="button" class="fancybutton" style="background-color: #38e038; width:49%; padding:5px 8px">Apply</button>
+			<button id="colorinput_bcancel" type="button" class="fancybutton" style="background-color: #d13824; width:49%; padding:5px 8px">Cancel</button>
+		    </div>
+	    </div>
+	    <div id="loadimagedivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
+		  <div id="loadimagediv" class="autocomplete" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: relative; top: 0; left: 0; width: 310px; padding: 1.0%; border: 3px solid #ffffff">
+		          <div id="loadimageautocompletecontainerdiv" class="autocomplete" style="position: relative; width: 100%">
+			     <input id="loadimageinput" type="text" autocomplete="off" style="position: relative; width: 90%">
+		          </div><br><br>
+			<button id="loadimage_bapply" type="button" class="fancybutton" style="background-color: #38e038; width:100px; padding:5px 8px">Apply</button>
+			<button id="loadimage_bcancel" type="button" class="fancybutton" style="background-color: #d13824; width:100px; padding:5px 8px">Cancel</button>
+			<button id="loadimage_bupdate" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px">Update List</button>
+		    </div>
+	    </div>
+	    <div id="loaddescriptiondivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
+		  <div id="loaddescriptiondiv" class="autocomplete" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: relative; top: 0; left: 0; width: 310px; padding: 1.0%; border: 3px solid #ffffff">
+		          <div id="loaddescriptionautocompletecontainerdiv" class="autocomplete" style="position: relative; width: 100%">
+			     <input id="loaddescriptioninput" type="text" autocomplete="off" style="position: relative; width: 90%">
+		          </div><br><br>
+			<button id="loaddescription_bapply" type="button" class="fancybutton" style="background-color: #38e038; width:100px; padding:5px 8px">Apply</button>
+			<button id="loaddescription_bcancel" type="button" class="fancybutton" style="background-color: #d13824; width:100px; padding:5px 8px">Cancel</button>
+			<button id="loaddescription_bupdate" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px">Update List</button>
+		    </div>
+	    </div>
+	    <div id="loadsounddivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
+		  <div id="loadsounddiv" class="autocomplete" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: relative; top: 0; left: 0; width: 310px; padding: 1.0%; border: 3px solid #ffffff">
+		          <div id="loadsoundautocompletecontainerdiv" class="autocomplete" style="position: relative; width: 100%">
+			     <input id="loadsoundinput" type="text" autocomplete="off" style="position: relative; width: 90%">
+		          </div><br><br>
+			<button id="loadsound_bapply" type="button" class="fancybutton" style="background-color: #38e038; width:100px; padding:5px 8px">Apply</button>
+			<button id="loadsound_bcancel" type="button" class="fancybutton" style="background-color: #d13824; width:100px; padding:5px 8px">Cancel</button>
+			<button id="loadsound_bupdate" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px">Update List</button>
+		    </div>
+	    </div>
+    </div>
+    <div id="logindialogdiv" style="background-color: lightgrey; border-left:3px solid white; border-bottom:3px solid white; border-right:3px solid white; position: absolute; top: 0%; left: 50%; margin-left: -150px; width: 250px; height: 175px; padding-left: 2%; padding-right: 2%; z-index: 1000"> <!--   visibility: hidden; z-index: 10-->
+	<label for="characterselect" style="position: absolute; top: 12px">Select your character:</label><br>
+	<select id="characterselect" style="width: 250px; position: absolute; top: 40px">
+	  <option value="volvo">It</option>
+	  <option value="saab">seems</option>
+	  <option value="mercedes">there</option>
+	  <option value="audi">is</option>
+	  <option value="audi">no</option>
+	  <option value="audi">connection</option>
+	  <option value="audi">to</option>
+	  <option value="audi">server.</option>
+	  <option value="audi">Very long entry in this list of serveral options to choose from.</option>
+	</select><br>
+	<input type="password" id="loginpasswordinput" placeholder="Password" style="width: 246px; position: absolute; top: 70px" value=""></input><br>
+	<label id="loginstatus" style="color: red; position: absolute; top: 95px; font-size: 16px; font-weight:bold"></label><br>
+	<button id="logindialogbutton" type="button" class="fancybutton" style="background-color: #3562de; width: 150px; position: absolute; left:50%; margin-left: -75px; top: 120px">Login</button>
+    </div>
+    <div id="gamedivloginoverlay" style="background-color: #cccccc; position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; opacity:0.5; z-index: 0"></div>
+    <div id="gamedivdetailimage" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
+	<img id="gamedivdetailimageimg" style=" position: absolute"></canvas>
+    </div>
+
+    
+     <!--  <canvas id="gamecanvas" width=800 height=800 class="board_context_menu btn btn-neutral"> </canvas>-->
+    <div id="maketokendialog" style="padding-left: 10px; padding-top: 10px; margin-left: 0%; margin-top: 0%; border: 1px solid #aaa; position: absolute; visibility: hidden; background-color: white; z-index: 2" >
+	<canvas id="tokencanvas"></canvas>
+	
+	<input type="text" id="tokennameinput" placeholder="Token Name" style="font-family:Helvetica;font-size:12px; position: absolute" value="" onkeydown="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"></input>
+	<input type="text" id="tokentypeinput" placeholder="Token Type" style="font-family:Helvetica;font-size:12px; position: absolute" value="" onkeydown="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"></input>
+	<textarea rows="5" cols="50" id="tokeneffectinput" placeholder="Token Effect" style="font-family:Helvetica;font-size:12px; resize: none;position: absolute" onkeydown="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"></textarea>
+	<input type="text" id="tokenvaluesinput" placeholder="Strength/Toughness" style="font-family:Helvetica;font-size:12px;position: absolute" value="" onkeydown="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"></input>
+	<button id="maketokendialog_breset" type="button" style="position: absolute">Reset</button>
+	<button id="maketokendialog_bcancel" type="button" style="position: absolute">Cancel</button>
+	<button id="maketokendialog_bokay" style="position: absolute" type="button">Create</button>
+    </div>
+    
+ <script src="lib/LinkedList.js"></script>
+ <script src="lib/rng.js"></script>
+ <script src="lib/jscolor.js"></script>
+ <script src="lib/frame.js"></script>
+ <script src="lib/marker.js"></script>
+ <script src="lib/framelabel.js"></script>
+ <script src="lib/token.js"></script>
+ <script src="lib/die.js"></script>
+ <script src="lib/autocomplete.js"></script>
+ <!--<script src="lib/die.js"></script>-->
+ <!--<script src="lib/animation.js"></script>-->
+<script src="lib/game.js"></script>
+</body>
+</html>
