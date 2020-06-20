@@ -1,0 +1,5 @@
+*.mp3
+*demo*.jpg
+autosave*.dat
+savestate*.dat
+node_modules/*

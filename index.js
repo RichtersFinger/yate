@@ -5,7 +5,7 @@ var io = require('socket.io')(server);
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.1";
+const version = "1.2";
 
 
 class sLinkedList {
@@ -190,6 +190,8 @@ server.listen(port, function(){
 	currenttime = initialtime;
 	lasttime = currenttime;
 	
+	rngseed(currenttime);
+	
 	var interval = 5 * 60 * 1000;
 	setTimeout(function(){backups(interval);}, interval);
 });
@@ -209,6 +211,7 @@ var relevantdata_framelabel = ["id", "x", "y", "scale", "zIndex", "currenttext",
 var relevantdata_tokenframe = ["id", "owner", "streamposition", "hasdescription", "timestamp", "x", "y", "size", "offsetx", "offsety", "scale", "bordercolor", "filename", "zIndex", "descname", "descfilename", "desctext", "visible"];
 var servertokenframes = new sLinkedList();
 var playingsound = false, lastsound = '', lastsoundlooping = false;
+var showeventlog = false;
 
 
 var initialtime, currenttime, lasttime;
@@ -243,12 +246,13 @@ var resourcelist = function(dir, done) {
 
 var welcome = io.of('/welcome');
 welcome.on('connection', function (socket) {
-	var userId; // user/client identifier for communication
+	var userId = socket.id; // user/client identifier for communication
 	var loggedin = false; // ..
 	var userplayerId = -1; // which role does the user have?
 	socket.on('somethingelse', function () {
 		// do something else
 	});
+	socket.emit('seteeventlog', showeventlog);
 	socket.on('userloginattempt', function (playerid, somepassword) {
 		if (playerid > -1 && playerid < players.length) {
 			if (playersloggedin[playerid]) {
@@ -309,12 +313,19 @@ welcome.on('connection', function (socket) {
 	});
 	socket.on('disconnect', function (reason) {
 		if (loggedin) {
-			socket.emit('alertmsg', "Something caused a disconnect. Please reload page.");
+			socket.emit('alertmsg', "Something caused a disconnect. Please relog/reload page.");
 			console.log("Player '" + players[userplayerId] + "' " + "(" + userplayerId + ") disconnected (" + reason + ").");
 			playersuserId[userplayerId] = -1;
 			playersloggedin[userplayerId] = false;
 			socket.emit('loginoptions', players, playersloggedin);
 			socket.broadcast.emit('loginoptions', players, playersloggedin);
+		}
+	});
+	socket.on('requesttoggleeventlog', function () {
+		if (userplayerId === 0) {
+			showeventlog = !showeventlog;
+			socket.emit('seteeventlog', showeventlog);
+			socket.broadcast.emit('seteeventlog', showeventlog);
 		}
 	});
 	socket.on('reqresourcelist', function () {
@@ -539,9 +550,14 @@ welcome.on('connection', function (socket) {
 			savestate(somefilename);
 		}
 	});
-	socket.on('diceroll', function (somevalue, somemaxvalue) {
-		if (userplayerId !== 0) {
-			console.log('Player ' + players[userplayerId] + ' rolled ' + somevalue + ' with a d' + somemaxvalue + ".");
+	socket.on('reqdiceroll', function (someid, somemaxvalue) {
+		var dieresult = Math.floor(1 + somemaxvalue * random());
+		socket.emit('setdievalue', someid, dieresult);
+		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ').');
+		if (showeventlog) 
+			socket.broadcast.emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
+		else {
+			socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
 		}
 	});
 	socket.on('requestplaysound', function (somesound, looping) {
@@ -639,4 +655,24 @@ function sendservertime(socket) {
 	socket.emit('servertime', currenttime2 - initialtime);
 	
 	setTimeout(function(){sendservertime(socket);}, 60000);
+}
+
+var m_w = 123456789;
+var m_z = 987654321;
+var mask = 0xffffffff;
+
+// Takes any integer
+function rngseed(i) {
+    m_w = (123456789 + i) & mask;
+    m_z = (987654321 - i) & mask;
+}
+
+// Returns number between 0 (inclusive) and 1.0 (exclusive),
+// just like Math.random().
+function random() {
+    m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+    m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+    var result = ((m_z << 16) + (m_w & 65535)) >>> 0;
+    result /= 4294967296;
+    return result;
 }
