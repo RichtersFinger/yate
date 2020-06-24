@@ -552,7 +552,7 @@ welcome.on('connection', function (socket) {
 	});
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
-		setTimeout(() => {  socket.emit('setdievalue', someid, dieresult); }, 2000);
+		socket.emit('setdievalue', someid, dieresult);
 		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ').');
 		if (showeventlog) 
 			socket.broadcast.emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
