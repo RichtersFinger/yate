@@ -182,7 +182,9 @@ server.listen(port, function(){
 	        // every service in the list has failed
 	        throw err;
 	    }
-	    console.log('Running on ' + ip + ":" + port);
+	    console.log('Local port', 8080);
+	    console.log('Listening on ' + ip + ":" + 8080 + ' (WLAN)');
+	    console.log('Listening on ' + ip + ":" + 8081 + ' (LAN)');
 	});
 	
 	var currentdate = new Date();
@@ -215,6 +217,7 @@ var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
 var serverdecks = new sLinkedList();
 
+var gameoptions = [];
 
 var initialtime, currenttime, lasttime;
 
@@ -354,6 +357,37 @@ welcome.on('connection', function (socket) {
 			  if (err) throw err;
 			  socket.emit('resourcelist_sound', results);
 			});
+		}
+	});
+	socket.on('gameoptions_add', function (option) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (!gameoptions.includes(option.replace(/\s/g, ''))) {
+				gameoptions.push(option.replace(/\s/g, ''));
+				console.log('current gameoptions:', gameoptions);
+				socket.emit('gameoptions_update', gameoptions);
+				socket.broadcast.emit('gameoptions_update', gameoptions);
+			}
+		}
+	});
+	socket.on('gameoptions_remove', function (option) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (gameoptions.includes(option)) {
+				var index = gameoptions.indexOf(option);
+				if (index > -1) {
+					gameoptions.splice(index, 1);
+				}
+				console.log('current gameoptions:', gameoptions);
+				socket.emit('gameoptions_update', gameoptions);
+				socket.broadcast.emit('gameoptions_update', gameoptions);
+			}
 		}
 	});
 	socket.on('pushimage', function (someframe, someMarkers, someLabels) {
@@ -623,6 +657,67 @@ welcome.on('connection', function (socket) {
 			socket.broadcast.emit('updatecard', somecard);
 		}
 	});
+	socket.on('pushdeletecard', function (somedeckid, somecardid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			var currentdeck = serverdecks.head;
+			var correctdeck = null;
+			for (var i = 0; i < serverdecks.length; i++) {
+				// intended not to occur; no deckid defined
+				// if (currentdeck.value.length > 0) { .. }
+				if (currentdeck.value.head.value.deckid === somedeckid) {
+					correctdeck = currentdeck;
+					break;
+				}
+				currentdeck = currentdeck.next;
+			}
+			// if deck already exists -> continue for look into deck
+			if (correctdeck) {
+				// search deck
+				var currentcard = correctdeck.value.head;
+				for (var i = 0; i < correctdeck.value.length; i++) {
+					if (currentcard.value.cardid === somecardid) {
+						console.log("removing card " + somedeckid + "." + somecardid);
+						correctdeck.value.moveToTail(currentcard);
+						correctdeck.value.removeFromTail(currentcard);
+						
+						if (correctdeck.value.length === 0) {
+							console.log("removing empty deck " + somedeckid);
+							serverdecks.moveToTail(correctdeck);
+							serverdecks.removeFromTail(correctdeck);
+						}
+						break;
+					}
+					currentcard = currentcard.next;
+				}
+			}
+		}
+		socket.emit('deletecard', somedeckid, somecardid);
+		socket.broadcast.emit('deletecard', somedeckid, somecardid);
+	});
+	socket.on('pushdeletedeck', function (somedeckid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			var currentdeck = serverdecks.head;
+			for (var i = 0; i < serverdecks.length; i++) {
+				if (currentdeck.value.head.value.deckid === somedeckid) {
+					serverdecks.moveToTail(currentdeck);
+					serverdecks.removeFromTail(currentdeck);
+					console.log("removing deck " + somedeckid);
+					break;
+				}
+				currentdeck = currentdeck.next;
+			}			
+		}
+		socket.emit('deletedeck', somedeckid);
+		socket.broadcast.emit('deletedeck', somedeckid);
+	});
 	socket.on('reqforcediscard', function () {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
@@ -630,6 +725,28 @@ welcome.on('connection', function (socket) {
 		}
 		if (userplayerId === 0) {
 			socket.broadcast.emit('forcediscard');
+		}
+	});
+	socket.on('reqchangedeckid', ( oldid, newid ) => {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			var currentdeck = serverdecks.head;
+			for (var i = 0; i < serverdecks.length; i++) {
+				if (currentdeck.value.head.value.deckid === oldid) {
+					var current = currentdeck.value.head;
+					for (var j = 0; j < currentdeck.value.length; j++) {
+						current.value.deckid = newid;
+						current = current.next;
+					}
+					break;
+				}
+				currentdeck = currentdeck.next;
+			}
+			socket.emit('changedeckid', oldid, newid);
+			socket.broadcast.emit('changedeckid', oldid, newid);
 		}
 	});
 	socket.on('updatecardposition', function (somedeckid, somecardid, newx, newy, newangle, newfaceup, newtimestamp) {
@@ -675,6 +792,59 @@ welcome.on('connection', function (socket) {
 						//}
 						correctcard.angle = newangle;
 						correctcard.faceup = newfaceup;
+					}
+				} 
+			}
+		}
+	});
+	socket.on('dragcardtotop', function (somedeckid, somecardid, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		var currentdeck = serverdecks.head;
+		var correctdeck = null;
+		for (var i = 0; i < serverdecks.length; i++) {
+			if (currentdeck.value.head.value.deckid === somedeckid) {
+				correctdeck = currentdeck.value;
+				break;
+			}
+			currentdeck = currentdeck.next;
+		}
+		if (correctdeck) {
+			// search deck
+			var currentcard = correctdeck.head;
+			var correctcard = null;
+			for (var i = 0; i < correctdeck.length; i++) {
+				if (currentcard.value.cardid === somecardid) {
+					correctcard = currentcard.value;
+					break;
+				}
+				currentcard = currentcard.next;
+			}
+			if (correctcard) {
+				if (correctcard.owner.includes(userplayerId)) {
+					var currentcard = correctdeck.head;
+					var maxzIndex = -1;
+					var originalindex = correctcard.zIndex;
+					for (var i = 0; i < correctdeck.length; i++) {
+						maxzIndex = Math.max(maxzIndex, currentcard.value.zIndex);
+						if (currentcard.value.zIndex >= correctcard.zIndex) {
+							currentcard.value.zIndex -= 1;
+							currentcard.value.timestamp = newtimestamp;
+						}
+						currentcard = currentcard.next;
+					}
+					correctcard.timestamp = newtimestamp;
+					correctcard.zIndex = maxzIndex;
+					
+					currentcard = correctdeck.head;
+					for (var i = 0; i < correctdeck.length; i++) {
+						//if (currentcard.value.zIndex >= originalindex - 1) {
+							socket.emit('changecardzIndex', somedeckid, currentcard.value.cardid, currentcard.value.zIndex, newtimestamp);
+							socket.broadcast.emit('changecardzIndex', somedeckid, currentcard.value.cardid, currentcard.value.zIndex, newtimestamp);
+						//}
+						currentcard = currentcard.next;
 					}
 				} 
 			}
@@ -768,6 +938,7 @@ welcome.on('connection', function (socket) {
 		}
 		current = current.next;
 	}
+	socket.emit('gameoptions_update', gameoptions);
 	console.log("new client, sent login options/game data");
 }); 
 
