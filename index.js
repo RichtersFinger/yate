@@ -5,7 +5,7 @@ var io = require('socket.io')(server);
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.2";
+const version = "1.3";
 
 
 class sLinkedList {
@@ -365,8 +365,8 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			if (!gameoptions.includes(option.replace(/\s/g, ''))) {
-				gameoptions.push(option.replace(/\s/g, ''));
+			if (!gameoptions.includes(option.replace(/\s/g, '').replace(/,/g, ''))) {
+				gameoptions.push(option.replace(/\s/g, '').replace(/,/g, ''));
 				console.log('current gameoptions:', gameoptions);
 				socket.emit('gameoptions_update', gameoptions);
 				socket.broadcast.emit('gameoptions_update', gameoptions);
@@ -850,6 +850,41 @@ welcome.on('connection', function (socket) {
 			}
 		}
 	});
+	socket.on('reqshuffle', function (cardlist) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		var shufflelist = [];
+		var currentdeck = serverdecks.head;
+		for (var i = 0; i < serverdecks.length; i++) {
+			var currentcard = currentdeck.value.head;
+			for (var j = 0; j < currentdeck.value.length; j++) {
+				if (currentcard.value.owner.includes(userplayerId)) {
+					if (cardlist.includes(currentcard.value.deckid + "." + currentcard.value.cardid)) {
+						shufflelist.push(currentcard.value);
+					}
+					if (shufflelist.length === cardlist.length) break;
+				}
+				currentcard = currentcard.next;
+			}
+			if (shufflelist.length === cardlist.length) break;
+			currentdeck = currentdeck.next;
+		}
+		console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards.');
+		// Fisher-Yates algorithm
+		for (var i = 0; i <= shufflelist.length - 2; i++) {
+			var partner = Math.floor(i + (shufflelist.length - 1 - i + 1) * random()); // random int in range i<=partner<shufflelist.length-1
+			var tempcardzIndex = shufflelist[i].zIndex;
+			shufflelist[i].zIndex = shufflelist[partner].zIndex;
+			shufflelist[partner].zIndex = tempcardzIndex;
+		}
+		for (var i = 0; i < shufflelist.length; i++) {
+			shufflelist[i].timestamp += 1; 
+			socket.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
+			socket.broadcast.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
+		}
+	});
 	socket.on('requestrestoreimage', function (someid) {
 		var current = serverimageframes.head;
 		for (var i = 0; i < serverimageframes.length; i++) {
@@ -954,6 +989,8 @@ function backups(interval) {
 function savestate(filename) {
 	var collecteddata = "" + new Date() + "\n" + version + "\n";
 	
+	collecteddata += gameoptions.join(',') + "\n";
+	
 	var current = serverimageframes.head;
 	for (var i = 0; i < serverimageframes.length; i++) {
 		collecteddata += "================" + "\n";
@@ -985,6 +1022,19 @@ function savestate(filename) {
 			collecteddata += current.value[relevantdata_tokenframe[j]] + "\n";
 		}
 		current = current.next;
+	}
+	var currentdeck = serverdecks.head;
+	for (var i = 0; i < serverdecks.length; i++) {
+		current = currentdeck.value.head;
+		for (var j = 0; j < currentdeck.value.length; j++) {
+			collecteddata += "================" + "\n";
+			collecteddata += ContainerTypes.Card + "\n";
+			for (var k = 0; k < relevantdata_card.length; k++) {
+				collecteddata += current.value[relevantdata_card[k]] + "\n";
+			}
+			current = current.next;
+		}
+		currentdeck = currentdeck.next;
 	}
 	
 	fs.writeFileSync(filename, collecteddata);
