@@ -915,6 +915,9 @@ welcome.on('connection', function (socket) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
 		socket.emit('setdievalue', someid, dieresult);
 		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ').');
+		if (gameoptions.includes('hugo')) {
+			if (somemaxvalue == 6 && dieresult === 6) dieresult = "hugo";
+		} 
 		if (showeventlog) 
 			socket.broadcast.emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
 		else {
