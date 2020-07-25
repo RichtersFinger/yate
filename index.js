@@ -200,6 +200,8 @@ server.listen(port, function(){
 
 //var players = ["GM", "Player 1", "Player 2", "Player 3", "Player 4", "Player 5", "Player 6", "Player 7", "Player 8"];
 var players = ["GM", "Valerie von Berle", "Anthropa Catzopolis", "Wilde Hilde", "Asiul Regnif", "Steward Flitchtail", "Dr. Arakel Sokan", "-Zuschauer-"];
+//var players = ["GM", "Jana", "Jenny", "Julia", "Luisa", "Marius", "Sascha", "Steffen"];
+//var passwords = ["wasd", "letmein", "letmein", "letmein", "letmein", "letmein", "letmein", "letmein"];
 var passwords = ["", "", "letmein", "letmein", "letmein", "letmein", "letmein", "letmein"];
 var playersuserId = [-1, -1, -1, -1, -1, -1, -1, -1];
 var playersloggedin = [false, false, false, false, false, false, false, false];
