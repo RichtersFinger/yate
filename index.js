@@ -206,10 +206,11 @@ var passwords = ["", "", "letmein", "letmein", "letmein", "letmein", "letmein", 
 var playersuserId = [-1, -1, -1, -1, -1, -1, -1, -1];
 var playersloggedin = [false, false, false, false, false, false, false, false];
 
-const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6};
+const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7};
 
 var serverimageframes = new sLinkedList();
 var relevantdata_imageframe = ["id", "owner", "streamposition", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "filename", "zIndex", "markeridcounter", "visible"];
+var relevantdata_canvasframe = ["id", "owner", "streamposition", "streamcontent", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "content", "zIndex"];
 var relevantdata_markerframe = ["id", "hasdescription", "x", "y", "size", "scale", "zIndex", "descfilename", "descname", "desctext"];
 var relevantdata_framelabel = ["id", "x", "y", "scale", "zIndex", "currenttext", "textcolor", "angle", "ctradius", "ctdir"];
 var relevantdata_tokenframe = ["id", "owner", "streamposition", "hasdescription", "timestamp", "x", "y", "size", "offsetx", "offsety", "scale", "bordercolor", "filename", "zIndex", "descname", "descfilename", "desctext", "visible"];
@@ -218,6 +219,7 @@ var servertokenframes = new sLinkedList();
 var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
 var serverdecks = new sLinkedList();
+var servercanvasframes = new sLinkedList();
 
 var gameoptions = [];
 
@@ -887,6 +889,114 @@ welcome.on('connection', function (socket) {
 			socket.broadcast.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
 		}
 	});
+	socket.on('pushcanvas', function (somecanvas) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			var current = servercanvasframes.head;
+			var correctframe = null;
+			for (var i = 0; i < servercanvasframes.length; i++) {
+				if (current.value.id === somecanvas.id) {
+					correctframe = current.value;
+					break;
+				}
+				current = current.next;
+			}
+			if (correctframe) {
+				console.log("GM updated token " + somecanvas.id + ".");
+				for (var i = 0; i < relevantdata_canvasframe.length; i++) {
+					correctframe[relevantdata_canvasframe[i]] = somecanvas[relevantdata_canvasframe[i]];
+				}
+				socket.emit('updatecanvasframe', somecanvas);
+				socket.broadcast.emit('updatecanvasframe', somecanvas);
+			} else {
+				console.log("GM pushed new token " + somecanvas.id + ".");
+				servercanvasframes.addToTail(somecanvas);
+				socket.emit('updatecanvasframe', somecanvas);
+				socket.broadcast.emit('updatecanvasframe', somecanvas);
+			}
+		}
+	});
+	socket.on('pushdeletecanvas', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			var current = servercanvasframes.head;
+			for (var i = 0; i < servercanvasframes.length; i++) {
+				if (current.value.id === someid) {
+					console.log("removing canvas " + someid);
+					servercanvasframes.moveToTail(current);
+					servercanvasframes.removeFromTail(current);
+					break;
+				}
+				current = current.next;
+			}
+			socket.emit('deletecanvas', someid);
+			socket.broadcast.emit('deletecanvas', someid);
+		}
+	});
+	socket.on('requpdatecanvascontent', function (someid, someJSON, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		var current = servercanvasframes.head;
+		var correctframe = null;
+		for (var i = 0; i < servercanvasframes.length; i++) {
+			if (current.value.id === someid) {
+				correctframe = current.value;
+				break;
+			}
+			current = current.next;
+		}
+		if (correctframe) {
+			if (correctframe.owner.includes(userplayerId)) {
+				if (correctframe.timestamp < newtimestamp) {
+					correctframe.content = someJSON;
+					correctframe.timestamp = newtimestamp;
+					
+					socket.emit('updatecanvascontent', someid, someJSON, newtimestamp);
+					socket.broadcast.emit('updatecanvascontent', someid, someJSON, newtimestamp);
+				}
+			} 
+		}
+	});
+	socket.on('updatecanvasposition', function (someid, newx, newy, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		var current = servercanvasframes.head;
+		var correctframe = null;
+		for (var i = 0; i < servercanvasframes.length; i++) {
+			if (current.value.id === someid) {
+				correctframe = current.value;
+				break;
+			}
+			current = current.next;
+		}
+		if (correctframe) {
+			if (correctframe.owner.includes(userplayerId)) {
+				if (correctframe.timestamp < newtimestamp) {
+					correctframe.x = newx;
+					correctframe.y = newy;
+					
+					var currentdate = new Date();
+					currenttime = currentdate.getTime();
+					correctframe.timestamp = newtimestamp;
+					if ( currenttime - lasttime >= 1000/100) {
+						lasttime = currenttime;
+						socket.emit('updatecanvasframeposition', someid, newx, newy, newtimestamp);
+						socket.broadcast.emit('updatecanvasframeposition', someid, newx, newy, newtimestamp);
+					}
+				}
+			} 
+		}
+	});
 	socket.on('requestrestoreimage', function (someid) {
 		var current = serverimageframes.head;
 		for (var i = 0; i < serverimageframes.length; i++) {
@@ -975,6 +1085,11 @@ welcome.on('connection', function (socket) {
 	var current = serverimageframes.head;
 	for (var i = 0; i < serverimageframes.length; i++) {
 		socket.emit('updateimageframe', current.value);
+		current = current.next;
+	}
+	var current = servercanvasframes.head;
+	for (var i = 0; i < servercanvasframes.length; i++) {
+		socket.emit('updatecanvasframe', current.value);
 		current = current.next;
 	}
 	current = servertokenframes.head;
