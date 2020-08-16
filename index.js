@@ -926,6 +926,19 @@ welcome.on('connection', function (socket) {
 			socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
 		}
 	});
+	socket.on('reqdiceroll_linked', function (somename, someid, somemaxvalue) {
+		var dieresult = Math.floor(1 + somemaxvalue * random());
+		socket.emit('setdievalue', someid, dieresult);
+		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ') for token ' + somename + '.');
+		if (gameoptions.includes('hugo')) {
+			if (somemaxvalue == 6 && dieresult === 6) dieresult = "hugo";
+		} 
+		if (showeventlog) 
+			socket.broadcast.emit('printevent', somename + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
+		else {
+			socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ') for token ' + somename + '.');
+		}
+	});
 	socket.on('requestplaysound', function (somesound, looping) {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
