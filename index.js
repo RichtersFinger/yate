@@ -905,14 +905,14 @@ welcome.on('connection', function (socket) {
 				current = current.next;
 			}
 			if (correctframe) {
-				console.log("GM updated token " + somecanvas.id + ".");
+				console.log("GM updated canvas " + somecanvas.id + ".");
 				for (var i = 0; i < relevantdata_canvasframe.length; i++) {
 					correctframe[relevantdata_canvasframe[i]] = somecanvas[relevantdata_canvasframe[i]];
 				}
 				socket.emit('updatecanvasframe', somecanvas);
 				socket.broadcast.emit('updatecanvasframe', somecanvas);
 			} else {
-				console.log("GM pushed new token " + somecanvas.id + ".");
+				console.log("GM pushed new canvas " + somecanvas.id + ".");
 				servercanvasframes.addToTail(somecanvas);
 				socket.emit('updatecanvasframe', somecanvas);
 				socket.broadcast.emit('updatecanvasframe', somecanvas);
