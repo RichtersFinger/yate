@@ -1021,6 +1021,7 @@ welcome.on('connection', function (socket) {
 		if (userplayerId === 0) {
 			console.log('Saving backup as', somefilename);
 			savestate(somefilename);
+			//xmlsavestate(somefilename);
 		}
 	});
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
@@ -1117,6 +1118,40 @@ function backups(interval) {
 	savestate('savestates/autosave'+(counter%100)+'.dat');
 	counter++;
 	setTimeout(function(){backups(interval);}, interval);
+}
+
+function xmlsavestate(filename) {
+	var collecteddata = "<xml>"
+	collecteddata += "<date>" + new Date() + "</date><version>" + version + "</version>";
+	
+	collecteddata += "<gameoptions>" + gameoptions.join(',') + "</gameoptions>";
+	
+	var current = serverimageframes.head;
+	for (var i = 0; i < serverimageframes.length; i++) {
+		collecteddata += "<imageframe>";
+		for (var j = 0; j < relevantdata_imageframe.length; j++) {
+			collecteddata += "<" + relevantdata_imageframe[j] + ">" + current.value[relevantdata_imageframe[j]] + "</" + relevantdata_imageframe[j] + ">";
+		}
+		for (var j = 0; j < current.value.marker.length; j++) {
+			collecteddata += "<marker>";
+			for (var k = 0; k < relevantdata_markerframe.length; k++) {
+				collecteddata += "<" + relevantdata_markerframe[k] + ">" + current.value.marker[j][relevantdata_markerframe[k]] + "</" + relevantdata_markerframe[k] + ">";
+			}
+			collecteddata += "</marker>";
+		}
+		for (var j = 0; j < current.value.label.length; j++) {
+			collecteddata += "<label>";
+			for (var k = 0; k < relevantdata_framelabel.length; k++) {
+				collecteddata += "<" + relevantdata_framelabel[k] + ">" + current.value.label[j][relevantdata_framelabel[k]] + "</" + relevantdata_framelabel[k] + ">";
+			}
+			collecteddata += "</label>";
+		}
+		collecteddata += "</imageframe>";
+		current = current.next;
+	}
+	
+	collecteddata += "</xml>";
+	fs.writeFileSync(filename, collecteddata);
 }
 
 function savestate(filename) {
