@@ -1020,8 +1020,8 @@ welcome.on('connection', function (socket) {
 	socket.on('requestsavestate', function (somefilename) {
 		if (userplayerId === 0) {
 			console.log('Saving backup as', somefilename);
-			savestate(somefilename);
-			//xmlsavestate(somefilename);
+			//savestate(somefilename);
+			xmlsavestate(somefilename);
 		}
 	});
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
@@ -1121,32 +1121,64 @@ function backups(interval) {
 }
 
 function xmlsavestate(filename) {
-	var collecteddata = "<xml>"
-	collecteddata += "<date>" + new Date() + "</date><version>" + version + "</version>";
+	var collecteddata = "<xml>\n"
+	collecteddata += "<date>" + new Date() + "</date>\n<version>" + version + "</version>\n";
 	
-	collecteddata += "<gameoptions>" + gameoptions.join(',') + "</gameoptions>";
+	collecteddata += "<gameoptions>" + gameoptions.join(',') + "</gameoptions>\n";
 	
+	// note: IMPORTANT: replace &, <, > by &lt; and &gt; in strings (simply substitute this in all values)
 	var current = serverimageframes.head;
 	for (var i = 0; i < serverimageframes.length; i++) {
-		collecteddata += "<imageframe>";
+		collecteddata += "<imageframe>\n";
 		for (var j = 0; j < relevantdata_imageframe.length; j++) {
-			collecteddata += "<" + relevantdata_imageframe[j] + ">" + current.value[relevantdata_imageframe[j]] + "</" + relevantdata_imageframe[j] + ">";
+			collecteddata += "\t<" + relevantdata_imageframe[j] + ">" + ("" + current.value[relevantdata_imageframe[j]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_imageframe[j] + ">\n";
 		}
 		for (var j = 0; j < current.value.marker.length; j++) {
-			collecteddata += "<marker>";
+			collecteddata += "\t<marker>\n";
 			for (var k = 0; k < relevantdata_markerframe.length; k++) {
-				collecteddata += "<" + relevantdata_markerframe[k] + ">" + current.value.marker[j][relevantdata_markerframe[k]] + "</" + relevantdata_markerframe[k] + ">";
+				collecteddata += "\t\t<" + relevantdata_markerframe[k] + ">" + ("" + current.value.marker[j][relevantdata_markerframe[k]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_markerframe[k] + ">\n";
 			}
-			collecteddata += "</marker>";
+			collecteddata += "\t</marker>\n";
 		}
 		for (var j = 0; j < current.value.label.length; j++) {
-			collecteddata += "<label>";
+			collecteddata += "\t<label>\n";
 			for (var k = 0; k < relevantdata_framelabel.length; k++) {
-				collecteddata += "<" + relevantdata_framelabel[k] + ">" + current.value.label[j][relevantdata_framelabel[k]] + "</" + relevantdata_framelabel[k] + ">";
+				collecteddata += "\t\t<" + relevantdata_framelabel[k] + ">" + ("" + current.value.label[j][relevantdata_framelabel[k]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_framelabel[k] + ">\n";
 			}
-			collecteddata += "</label>";
+			collecteddata += "\t</label>\n";
 		}
-		collecteddata += "</imageframe>";
+		collecteddata += "</imageframe>\n";
+		current = current.next;
+	}
+	current = servertokenframes.head;
+	for (var i = 0; i < servertokenframes.length; i++) {
+		collecteddata += "<tokenframe>\n";
+		for (var j = 0; j < relevantdata_tokenframe.length; j++) {
+			collecteddata += "\t<" + relevantdata_tokenframe[j] + ">" + ("" + current.value[relevantdata_tokenframe[j]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_tokenframe[j] + ">\n";
+		}
+		collecteddata += "</tokenframe>\n";
+		current = current.next;
+	}
+	var currentdeck = serverdecks.head;
+	for (var i = 0; i < serverdecks.length; i++) {
+		current = currentdeck.value.head;
+		for (var j = 0; j < currentdeck.value.length; j++) {
+			collecteddata += "<card>\n";
+			for (var k = 0; k < relevantdata_card.length; k++) {
+				collecteddata += "\t<" + relevantdata_card[k] + ">" + ("" + current.value[relevantdata_card[k]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_card[k] + ">\n";
+			}
+			collecteddata += "</card>\n";
+			current = current.next;
+		}
+		currentdeck = currentdeck.next;
+	}
+	current = servercanvasframes.head;
+	for (var i = 0; i < servercanvasframes.length; i++) {
+		collecteddata += "<canvasframe>\n";
+		for (var j = 0; j < relevantdata_canvasframe.length; j++) {
+			collecteddata += "\t<" + relevantdata_canvasframe[j] + ">" + ("" + current.value[relevantdata_canvasframe[j]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_canvasframe[j] + ">\n";
+		}
+		collecteddata += "</canvasframe>\n";
 		current = current.next;
 	}
 	
