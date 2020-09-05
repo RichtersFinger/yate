@@ -5,7 +5,7 @@ var io = require('socket.io')(server);
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.3";
+const version = "1.4";
 
 
 class sLinkedList {
