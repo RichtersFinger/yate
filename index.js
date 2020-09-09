@@ -1020,7 +1020,6 @@ welcome.on('connection', function (socket) {
 	socket.on('requestsavestate', function (somefilename) {
 		if (userplayerId === 0) {
 			console.log('Saving backup as', somefilename);
-			//savestate(somefilename);
 			xmlsavestate(somefilename);
 		}
 	});
@@ -1115,7 +1114,7 @@ welcome.on('connection', function (socket) {
 var counter = 0;
 function backups(interval) {
 	console.log('autosaving..');
-	savestate('savestates/autosave'+(counter%100)+'.dat');
+	xmlsavestate('savestates/autosave'+(counter%100)+'.xml');
 	counter++;
 	setTimeout(function(){backups(interval);}, interval);
 }
@@ -1187,6 +1186,7 @@ function xmlsavestate(filename) {
 }
 
 function savestate(filename) {
+	console.log('WARNING: DEPRECATED SAVESTATE PROCEDURE HAS BEEN CALLED.')
 	var collecteddata = "" + new Date() + "\n" + version + "\n";
 	
 	collecteddata += gameoptions.join(',') + "\n";
