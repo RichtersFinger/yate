@@ -173,6 +173,11 @@ app.use("/sound", express.static('sound'));
 
 /*app.use("/font", express.static('font'));*/
 
+var players = [];
+var passwords = [];
+var playersuserId = [];
+var playersloggedin = [];
+
 const port = 8080;
 server.listen(port, function(){
 	//npm install external-ip
@@ -196,15 +201,18 @@ server.listen(port, function(){
 	
 	var interval = 5 * 60 * 1000;
 	setTimeout(function(){backups(interval);}, interval);
+	
+	
+	var contents = fs.readFileSync('players.dat', 'utf8').split(/\r?\n/);
+	for (var i = 0; i < contents.length; i++) {
+		var current = contents[i].split('\t');
+		players.push(current[0]);
+		passwords.push(current[1]);
+		playersuserId.push(-1);
+		playersloggedin.push(false);
+	}
+	console.log('List of players:', players);
 });
-
-//var players = ["GM", "Player 1", "Player 2", "Player 3", "Player 4", "Player 5", "Player 6", "Player 7", "Player 8"];
-var players = ["GM", "Valerie von Berle", "Anthropa Catzopolis", "Wilde Hilde", "Asiul Regnif", "Steward Flitchtail", "Dr. Arakel Sokan", "-Zuschauer-"];
-//var players = ["GM", "Jana", "Jenny", "Julia", "Luisa", "Marius", "Sascha", "Steffen"];
-//var passwords = ["wasd", "letmein", "letmein", "letmein", "letmein", "letmein", "letmein", "letmein"];
-var passwords = ["", "", "letmein", "letmein", "letmein", "letmein", "letmein", "letmein"];
-var playersuserId = [-1, -1, -1, -1, -1, -1, -1, -1];
-var playersloggedin = [false, false, false, false, false, false, false, false];
 
 const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7};
 
