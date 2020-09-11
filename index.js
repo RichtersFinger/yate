@@ -217,7 +217,7 @@ server.listen(port, function(){
 const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7};
 
 var serverimageframes = new sLinkedList();
-var relevantdata_imageframe = ["id", "owner", "streamposition", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "filename", "zIndex", "markeridcounter", "visible"];
+var relevantdata_imageframe = ["id", "owner", "streamposition", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "filename", "zIndex", "markeridcounter", "labelidcounter", "visible"];
 var relevantdata_canvasframe = ["id", "owner", "streamposition", "streamcontent", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "content", "zIndex"];
 var relevantdata_markerframe = ["id", "hasdescription", "x", "y", "size", "scale", "zIndex", "descfilename", "descname", "desctext"];
 var relevantdata_framelabel = ["id", "x", "y", "scale", "zIndex", "currenttext", "textcolor", "angle", "ctradius", "ctdir"];
