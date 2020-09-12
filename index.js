@@ -216,18 +216,18 @@ server.listen(port, function(){
 
 const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7};
 
-var serverimageframes = new sLinkedList();
+var serverimageframes = {};
 var relevantdata_imageframe = ["id", "owner", "streamposition", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "filename", "zIndex", "markeridcounter", "labelidcounter", "visible"];
 var relevantdata_canvasframe = ["id", "owner", "streamposition", "streamcontent", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "content", "zIndex"];
 var relevantdata_markerframe = ["id", "hasdescription", "x", "y", "size", "scale", "zIndex", "descfilename", "descname", "desctext"];
 var relevantdata_framelabel = ["id", "x", "y", "scale", "zIndex", "currenttext", "textcolor", "angle", "ctradius", "ctdir"];
 var relevantdata_tokenframe = ["id", "owner", "streamposition", "hasdescription", "timestamp", "x", "y", "size", "offsetx", "offsety", "scale", "bordercolor", "filename", "zIndex", "descname", "descfilename", "desctext", "visible"];
 var relevantdata_card = ["deckid", "cardid", "owner", "viewingrights", "streamposition", "timestamp", "x", "y", "angle", "faceup", "width", "height", "scale", "bordercolor", "filenamefront", "filenameback", "zIndex"];
-var servertokenframes = new sLinkedList();
+var servertokenframes =  {};
 var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
-var serverdecks = new sLinkedList();
-var servercanvasframes = new sLinkedList();
+var serverdecks = {};
+var servercanvasframes = {};
 
 var gameoptions = [];
 
@@ -408,34 +408,16 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var current = serverimageframes.head;
-			var correctframe = null;
-			for (var i = 0; i < serverimageframes.length; i++) {
-				if (current.value.id === someframe.id) {
-					correctframe = current.value;
-					break;
-				}
-				current = current.next;
-			}
-			if (correctframe) {
+			if (serverimageframes[someframe.id]) {
 				console.log("GM updated imageframe " + someframe.id + ".");
-				for (var i = 0; i < relevantdata_imageframe.length; i++) {
-					correctframe[relevantdata_imageframe[i]] = someframe[relevantdata_imageframe[i]];
-				}
-				// keep only container with marker/label info
-				correctframe.marker = someMarkers;
-				correctframe.label = someLabels;
-				socket.emit('updateimageframe', correctframe);
-				socket.broadcast.emit('updateimageframe', correctframe);
 			} else {
 				console.log("GM pushed new imageframe " + someframe.id + ".");
-				serverimageframes.addToTail(someframe);
-				// keep only container with marker/label info
-				serverimageframes.tail.value.marker = someMarkers;
-				serverimageframes.tail.value.label = someLabels;
-				socket.emit('updateimageframe', someframe);
-				socket.broadcast.emit('updateimageframe', someframe);
 			}
+			serverimageframes[someframe.id] = someframe;
+			serverimageframes[someframe.id]["marker"] = someMarkers;
+			serverimageframes[someframe.id]["label"] = someLabels;
+			socket.emit('updateimageframe', serverimageframes[someframe.id]);
+			socket.broadcast.emit('updateimageframe', serverimageframes[someframe.id]);
 		}
 	});
 	socket.on('updateimageposition', function (someid, newx, newy, newtimestamp) {
@@ -443,24 +425,15 @@ welcome.on('connection', function (socket) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
-		var current = serverimageframes.head;
-		var correctframe = null;
-		for (var i = 0; i < serverimageframes.length; i++) {
-			if (current.value.id === someid) {
-				correctframe = current.value;
-				break;
-			}
-			current = current.next;
-		}
-		if (correctframe) {
-			if (correctframe.owner.includes(userplayerId)) {
-				if (correctframe.timestamp < newtimestamp) {
-					correctframe.x = newx;
-					correctframe.y = newy;
+		if (serverimageframes[someid]) {
+			if (serverimageframes[someid].owner.includes(userplayerId)) {
+				if (serverimageframes[someid].timestamp < newtimestamp) {
+					serverimageframes[someid].x = newx;
+					serverimageframes[someid].y = newy;
 					
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
-					correctframe.timestamp = newtimestamp;
+					serverimageframes[someid].timestamp = newtimestamp;
 					if ( currenttime - lasttime >= 1000/100) {
 						lasttime = currenttime;
 						socket.emit('updateimageframeposition', someid, newx, newy, newtimestamp);
@@ -470,107 +443,19 @@ welcome.on('connection', function (socket) {
 			} 
 		}
 	});
-	socket.on('updatetokenposition', function (someid, newx, newy, newtimestamp) {
-		if (userplayerId === -1 && !alertednotloggedin) {
-			alertednotloggedin = true;
-			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
-		}
-		var current = servertokenframes.head;
-		var correctframe = null;
-		for (var i = 0; i < servertokenframes.length; i++) {
-			if (current.value.id === someid) {
-				correctframe = current.value;
-				break;
-			}
-			current = current.next;
-		}
-		if (correctframe) {
-			if (correctframe.owner.includes(userplayerId)) {
-				if (correctframe.timestamp < newtimestamp) {
-					correctframe.x = newx;
-					correctframe.y = newy;
-					
-					var currentdate = new Date();
-					currenttime = currentdate.getTime();
-					correctframe.timestamp = newtimestamp;
-					if ( currenttime - lasttime >= 1000/100) {
-						lasttime = currenttime;
-						socket.emit('updatetokenframeposition', someid, newx, newy, newtimestamp);
-						socket.broadcast.emit('updatetokenframeposition', someid, newx, newy, newtimestamp);
-					}
-				}
-			} 
-		}
-	});
-	socket.on('pushtoken', function (sometoken) {
-		if (userplayerId === -1 && !alertednotloggedin) {
-			alertednotloggedin = true;
-			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
-		}
-		if (userplayerId === 0) {
-			var current = servertokenframes.head;
-			var correctframe = null;
-			for (var i = 0; i < servertokenframes.length; i++) {
-				if (current.value.id === sometoken.id) {
-					correctframe = current.value;
-					break;
-				}
-				current = current.next;
-			}
-			if (correctframe) {
-				console.log("GM updated token " + sometoken.id + ".");
-				for (var i = 0; i < relevantdata_tokenframe.length; i++) {
-					correctframe[relevantdata_tokenframe[i]] = sometoken[relevantdata_tokenframe[i]];
-				}
-				socket.emit('updatetokenframe', sometoken);
-				socket.broadcast.emit('updatetokenframe', sometoken);
-			} else {
-				console.log("GM pushed new token " + sometoken.id + ".");
-				servertokenframes.addToTail(sometoken);
-				socket.emit('updatetokenframe', sometoken);
-				socket.broadcast.emit('updatetokenframe', sometoken);
-			}
-		}
-	});
 	socket.on('pushdeleteimage', function (someid) {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var current = serverimageframes.head;
-			for (var i = 0; i < serverimageframes.length; i++) {
-				if (current.value.id === someid) {
-					console.log("removing frame " + someid);
-					serverimageframes.moveToTail(current);
-					serverimageframes.removeFromTail(current);
-					break;
-				}
-				current = current.next;
-			}
+			if (serverimageframes[someid]) delete serverimageframes[someid];
 			socket.emit('deleteimage', someid);
 			socket.broadcast.emit('deleteimage', someid);
 		}
 	});
-	socket.on('pushdeletetoken', function (someid) {
-		if (userplayerId === -1 && !alertednotloggedin) {
-			alertednotloggedin = true;
-			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
-		}
-		if (userplayerId === 0) {
-			var current = servertokenframes.head;
-			for (var i = 0; i < servertokenframes.length; i++) {
-				if (current.value.id === someid) {
-					console.log("removing token " + someid);
-					servertokenframes.moveToTail(current);
-					servertokenframes.removeFromTail(current);
-					break;
-				}
-				current = current.next;
-			}
-			socket.emit('deletetoken', someid);
-			socket.broadcast.emit('deletetoken', someid);
-		}
+	socket.on('requestrestoreimage', function (someid) {
+		if (serverimageframes[someid]) socket.emit('updateimageframe', serverimageframes[someid]);
 	});
 	socket.on('pushdeletemarker', function (someframeid, somemarkerid) {
 		if (userplayerId === -1 && !alertednotloggedin) {
@@ -578,20 +463,8 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var current = serverimageframes.head;
-			for (var i = 0; i < serverimageframes.length; i++) {
-				if (current.value.id === someframeid) {
-					break;
-				}
-				current = current.next;
-			}
-			if (current) {
-				for (var i = 0; i < current.value.marker.length; i++) {
-					if (current.value.marker[i].id === somemarkerid) {
-						current.value.marker.splice(i, 1);
-						break;
-					}
-				}
+			if (serverimageframes[someframeid]) {
+				if (serverimageframes[someframeid].marker[somemarkerid]) delete serverimageframes[someframeid].marker[somemarkerid];
 				socket.emit('deletemarker', someframeid, somemarkerid);
 				socket.broadcast.emit('deletemarker', someframeid, somemarkerid);
 			}
@@ -603,24 +476,68 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var current = serverimageframes.head;
-			for (var i = 0; i < serverimageframes.length; i++) {
-				if (current.value.id === someframeid) {
-					break;
-				}
-				current = current.next;
-			}
-			if (current) {
-				for (var i = 0; i < current.value.label.length; i++) {
-					if (current.value.label[i].id === somelabelid) {
-						current.value.label.splice(i, 1);
-						break;
-					}
-				}
+			if (serverimageframes[someframeid]) {
+				if (serverimageframes[someframeid].label[somelabelid]) delete serverimageframes[someframeid].label[somelabelid];
 				socket.emit('deletelabel', someframeid, somelabelid);
 				socket.broadcast.emit('deletelabel', someframeid, somelabelid);
 			}
 		}
+	});
+	socket.on('pushtoken', function (sometoken) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (servertokenframes[sometoken.id]) {
+				console.log("GM updated token " + sometoken.id + ".");
+			} else {
+				console.log("GM pushed new token " + sometoken.id + ".");
+			}
+			servertokenframes[sometoken.id] = sometoken;
+			socket.emit('updatetokenframe', sometoken);
+			socket.broadcast.emit('updatetokenframe', sometoken);
+		}
+	});
+	socket.on('updatetokenposition', function (someid, newx, newy, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (servertokenframes[someid]) {
+			if (servertokenframes[someid].owner.includes(userplayerId)) {
+				if (servertokenframes[someid].timestamp < newtimestamp) {
+					servertokenframes[someid].x = newx;
+					servertokenframes[someid].y = newy;
+					
+					var currentdate = new Date();
+					currenttime = currentdate.getTime();
+					servertokenframes[someid].timestamp = newtimestamp;
+					if (currenttime - lasttime >= 1000/100) {
+						lasttime = currenttime;
+						socket.emit('updatetokenframeposition', someid, newx, newy, newtimestamp);
+						socket.broadcast.emit('updatetokenframeposition', someid, newx, newy, newtimestamp);
+					}
+				}
+			} 
+		}
+	});
+	socket.on('pushdeletetoken', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (servertokenframes[someid]) {
+				console.log("removing token " + someid);
+				delete servertokenframes[someid];
+			}
+			socket.emit('deletetoken', someid);
+			socket.broadcast.emit('deletetoken', someid);
+		}
+	});
+	socket.on('requestrestoretoken', function (someid) {
+		if (servertokenframes[someid]) socket.emit('updateimageframe', servertokenframes[someid]);
 	});
 	socket.on('pushcard', function (somecard) {
 		if (userplayerId === -1 && !alertednotloggedin) {
@@ -628,43 +545,17 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			// look for card in data; start with looking for correct deck
-			var currentdeck = serverdecks.head;
-			var correctdeck = null;
-			for (var i = 0; i < serverdecks.length; i++) {
-				// intended not to occur; no deckid defined
-				// if (currentdeck.value.length > 0) { .. }
-				if (currentdeck.value.head.value.deckid === somecard.deckid) {
-					correctdeck = currentdeck.value;
-					break;
-				}
-				currentdeck = currentdeck.next;
-			}
-			// if deck already exists -> continue for look into deck; else make new deck
-			if (!correctdeck) {
-				serverdecks.addToTail(new sLinkedList());
-				correctdeck = serverdecks.tail.value;
-			}
-			// search deck
-			var currentcard = correctdeck.head;
-			var correctcard = null;
-			for (var i = 0; i < correctdeck.length; i++) {
-				if (currentcard.value.cardid === somecard.cardid) {
-					correctcard = currentcard.value;
-					break;
-				}
-				currentcard = currentcard.next;
-			}
-			// if card already exists -> update; else make new card
-			if (correctcard) {
-				console.log("GM updated card " + somecard.deckid + "." + somecard.cardid + ".");
-				for (var i = 0; i < relevantdata_card.length; i++) {
-					correctcard[relevantdata_card[i]] = somecard[relevantdata_card[i]];
+			if (serverdecks[somecard.deckid]) {
+				if (serverdecks[somecard.deckid][somecard.cardid]) {
+					console.log("GM updated card " + somecard.deckid + "." + somecard.cardid + ".");
+				} else {
+					console.log("GM pushed new card " + somecard.deckid + "." + somecard.cardid + ".");
 				}
 			} else {
+				serverdecks[somecard.deckid] = {};
 				console.log("GM pushed new card " + somecard.deckid + "." + somecard.cardid + ".");
-				correctdeck.addToTail(somecard);
 			}
+			serverdecks[somecard.deckid][somecard.cardid] = somecard;
 			socket.emit('updatecard', somecard);
 			socket.broadcast.emit('updatecard', somecard);
 		}
@@ -675,35 +566,14 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var currentdeck = serverdecks.head;
-			var correctdeck = null;
-			for (var i = 0; i < serverdecks.length; i++) {
-				// intended not to occur; no deckid defined
-				// if (currentdeck.value.length > 0) { .. }
-				if (currentdeck.value.head.value.deckid === somedeckid) {
-					correctdeck = currentdeck;
-					break;
+			if (serverdecks[somedeckid]) {
+				if (serverdecks[somedeckid][somecardid]) {
+					console.log("removing card " + somedeckid + "." + somecardid);
+					delete serverdecks[somedeckid][somecardid];
 				}
-				currentdeck = currentdeck.next;
-			}
-			// if deck already exists -> continue for look into deck
-			if (correctdeck) {
-				// search deck
-				var currentcard = correctdeck.value.head;
-				for (var i = 0; i < correctdeck.value.length; i++) {
-					if (currentcard.value.cardid === somecardid) {
-						console.log("removing card " + somedeckid + "." + somecardid);
-						correctdeck.value.moveToTail(currentcard);
-						correctdeck.value.removeFromTail(currentcard);
-						
-						if (correctdeck.value.length === 0) {
-							console.log("removing empty deck " + somedeckid);
-							serverdecks.moveToTail(correctdeck);
-							serverdecks.removeFromTail(correctdeck);
-						}
-						break;
-					}
-					currentcard = currentcard.next;
+				if (Object.keys(serverdecks[somedeckid]).length === 0) {
+					console.log("removing empty deck " + somedeckid);
+					delete serverdecks[somedeckid];
 				}
 			}
 		}
@@ -716,15 +586,8 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var currentdeck = serverdecks.head;
-			for (var i = 0; i < serverdecks.length; i++) {
-				if (currentdeck.value.head.value.deckid === somedeckid) {
-					serverdecks.moveToTail(currentdeck);
-					serverdecks.removeFromTail(currentdeck);
-					console.log("removing deck " + somedeckid);
-					break;
-				}
-				currentdeck = currentdeck.next;
+			if (serverdecks[somedeckid]) {
+				delete serverdecks[somedeckid];
 			}			
 		}
 		socket.emit('deletedeck', somedeckid);
@@ -745,20 +608,17 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var currentdeck = serverdecks.head;
-			for (var i = 0; i < serverdecks.length; i++) {
-				if (currentdeck.value.head.value.deckid === oldid) {
-					var current = currentdeck.value.head;
-					for (var j = 0; j < currentdeck.value.length; j++) {
-						current.value.deckid = newid;
-						current = current.next;
-					}
-					break;
+			if (!serverdecks[newid]) {
+				if (serverdecks[oldid]) {
+					Object.defineProperty(serverdecks, newid, Object.getOwnPropertyDescriptor(serverdecks, oldid));
+					delete serverdecks[oldid];
 				}
-				currentdeck = currentdeck.next;
+				for (var currentcard in serverdecks[newid]) {
+					serverdecks[newid][currentcard].deckid = newid;
+				}
+				socket.emit('changedeckid', oldid, newid);
+				socket.broadcast.emit('changedeckid', oldid, newid);
 			}
-			socket.emit('changedeckid', oldid, newid);
-			socket.broadcast.emit('changedeckid', oldid, newid);
 		}
 	});
 	socket.on('updatecardposition', function (somedeckid, somecardid, newx, newy, newangle, newfaceup, newtimestamp) {
@@ -766,44 +626,23 @@ welcome.on('connection', function (socket) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
-		var currentdeck = serverdecks.head;
-		var correctdeck = null;
-		for (var i = 0; i < serverdecks.length; i++) {
-			// intended not to occur; no deckid defined
-			// if (currentdeck.value.length > 0) { .. }
-			if (currentdeck.value.head.value.deckid === somedeckid) {
-				correctdeck = currentdeck.value;
-				break;
-			}
-			currentdeck = currentdeck.next;
-		}
-		if (correctdeck) {
-			// search deck
-			var currentcard = correctdeck.head;
-			var correctcard = null;
-			for (var i = 0; i < correctdeck.length; i++) {
-				if (currentcard.value.cardid === somecardid) {
-					correctcard = currentcard.value;
-					break;
-				}
-				currentcard = currentcard.next;
-			}
-			if (correctcard) {
-				if (correctcard.owner.includes(userplayerId)) {
-					if (correctcard.timestamp < newtimestamp) {
-						correctcard.x = newx;
-						correctcard.y = newy;
+		if (serverdecks[somedeckid]) {
+			if (serverdecks[somedeckid][somecardid]) {
+				if (serverdecks[somedeckid][somecardid].owner.includes(userplayerId)) {
+					if (serverdecks[somedeckid][somecardid].timestamp < newtimestamp) {
+						serverdecks[somedeckid][somecardid].x = newx;
+						serverdecks[somedeckid][somecardid].y = newy;
+						serverdecks[somedeckid][somecardid].angle = newangle;
+						serverdecks[somedeckid][somecardid].faceup = newfaceup;
 						
 						var currentdate = new Date();
 						currenttime = currentdate.getTime();
-						correctcard.timestamp = newtimestamp;
+						serverdecks[somedeckid][somecardid].timestamp = newtimestamp;
 						//if ( currenttime - lasttime >= 1000/100 || newfaceup !== correctcard.faceup || newangle != correctcard.angle) {
 							lasttime = currenttime;
 							socket.emit('updatecardposition', somedeckid, somecardid, newx, newy, newangle, newfaceup, newtimestamp);
 							socket.broadcast.emit('updatecardposition', somedeckid, somecardid, newx, newy, newangle, newfaceup, newtimestamp);
 						//}
-						correctcard.angle = newangle;
-						correctcard.faceup = newfaceup;
 					}
 				} 
 			}
@@ -814,50 +653,24 @@ welcome.on('connection', function (socket) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
-		var currentdeck = serverdecks.head;
-		var correctdeck = null;
-		for (var i = 0; i < serverdecks.length; i++) {
-			if (currentdeck.value.head.value.deckid === somedeckid) {
-				correctdeck = currentdeck.value;
-				break;
-			}
-			currentdeck = currentdeck.next;
-		}
-		if (correctdeck) {
-			// search deck
-			var currentcard = correctdeck.head;
-			var correctcard = null;
-			for (var i = 0; i < correctdeck.length; i++) {
-				if (currentcard.value.cardid === somecardid) {
-					correctcard = currentcard.value;
-					break;
-				}
-				currentcard = currentcard.next;
-			}
-			if (correctcard) {
-				if (correctcard.owner.includes(userplayerId)) {
-					var currentcard = correctdeck.head;
+		if (serverdecks[somedeckid]) {
+			if (serverdecks[somedeckid][somecardid]) {
+				if (serverdecks[somedeckid][somecardid].owner.includes(userplayerId)) {
 					var maxzIndex = -1;
-					var originalindex = correctcard.zIndex;
-					for (var i = 0; i < correctdeck.length; i++) {
-						maxzIndex = Math.max(maxzIndex, currentcard.value.zIndex);
-						if (currentcard.value.zIndex >= correctcard.zIndex) {
-							currentcard.value.zIndex -= 1;
-							currentcard.value.timestamp = newtimestamp;
+					var originalindex = serverdecks[somedeckid][somecardid].zIndex;
+					for (var currentcard in serverdecks[somedeckid]) {
+						maxzIndex = Math.max(maxzIndex, serverdecks[somedeckid][currentcard].zIndex);
+						if (serverdecks[somedeckid][currentcard].zIndex >= serverdecks[somedeckid][somecardid].zIndex) {
+							serverdecks[somedeckid][currentcard].zIndex -= 1;
+							serverdecks[somedeckid][currentcard].timestamp = newtimestamp;
+							socket.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][currentcard].cardid, serverdecks[somedeckid][currentcard].zIndex, newtimestamp);
+							socket.broadcast.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][currentcard].cardid, serverdecks[somedeckid][currentcard].zIndex, newtimestamp);
 						}
-						currentcard = currentcard.next;
 					}
-					correctcard.timestamp = newtimestamp;
-					correctcard.zIndex = maxzIndex;
-					
-					currentcard = correctdeck.head;
-					for (var i = 0; i < correctdeck.length; i++) {
-						//if (currentcard.value.zIndex >= originalindex - 1) {
-							socket.emit('changecardzIndex', somedeckid, currentcard.value.cardid, currentcard.value.zIndex, newtimestamp);
-							socket.broadcast.emit('changecardzIndex', somedeckid, currentcard.value.cardid, currentcard.value.zIndex, newtimestamp);
-						//}
-						currentcard = currentcard.next;
-					}
+					serverdecks[somedeckid][somecardid].timestamp = newtimestamp;
+					serverdecks[somedeckid][somecardid].zIndex = maxzIndex;
+					socket.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
+					socket.broadcast.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
 				} 
 			}
 		}
@@ -868,20 +681,15 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		var shufflelist = [];
-		var currentdeck = serverdecks.head;
-		for (var i = 0; i < serverdecks.length; i++) {
-			var currentcard = currentdeck.value.head;
-			for (var j = 0; j < currentdeck.value.length; j++) {
-				if (currentcard.value.owner.includes(userplayerId)) {
-					if (cardlist.includes(currentcard.value.deckid + "." + currentcard.value.cardid)) {
-						shufflelist.push(currentcard.value);
+		for (var currentdeck in serverdecks) {
+			for (var currentcard in serverdecks[currentdeck]) {
+				if (serverdecks[currentdeck][currentcard].owner.includes(userplayerId)) {
+					if (cardlist.includes(serverdecks[currentdeck][currentcard].deckid + "." + serverdecks[currentdeck][currentcard].cardid)) {
+						shufflelist.push(serverdecks[currentdeck][currentcard]);
+						if (shufflelist.length === cardlist.length) break;
 					}
-					if (shufflelist.length === cardlist.length) break;
 				}
-				currentcard = currentcard.next;
 			}
-			if (shufflelist.length === cardlist.length) break;
-			currentdeck = currentdeck.next;
 		}
 		console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards.');
 		// Fisher-Yates algorithm
@@ -903,28 +711,14 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var current = servercanvasframes.head;
-			var correctframe = null;
-			for (var i = 0; i < servercanvasframes.length; i++) {
-				if (current.value.id === somecanvas.id) {
-					correctframe = current.value;
-					break;
-				}
-				current = current.next;
-			}
-			if (correctframe) {
+			if (servercanvasframes[somecanvas.id]) {
 				console.log("GM updated canvas " + somecanvas.id + ".");
-				for (var i = 0; i < relevantdata_canvasframe.length; i++) {
-					correctframe[relevantdata_canvasframe[i]] = somecanvas[relevantdata_canvasframe[i]];
-				}
-				socket.emit('updatecanvasframe', somecanvas);
-				socket.broadcast.emit('updatecanvasframe', somecanvas);
 			} else {
 				console.log("GM pushed new canvas " + somecanvas.id + ".");
-				servercanvasframes.addToTail(somecanvas);
-				socket.emit('updatecanvasframe', somecanvas);
-				socket.broadcast.emit('updatecanvasframe', somecanvas);
 			}
+			servercanvasframes[somecanvas.id] = somecanvas;
+			socket.emit('updatecanvasframe', somecanvas);
+			socket.broadcast.emit('updatecanvasframe', somecanvas);
 		}
 	});
 	socket.on('pushdeletecanvas', function (someid) {
@@ -933,16 +727,7 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			var current = servercanvasframes.head;
-			for (var i = 0; i < servercanvasframes.length; i++) {
-				if (current.value.id === someid) {
-					console.log("removing canvas " + someid);
-					servercanvasframes.moveToTail(current);
-					servercanvasframes.removeFromTail(current);
-					break;
-				}
-				current = current.next;
-			}
+			if (servercanvasframes[someid]) delete servercanvasframes[someid];
 			socket.emit('deletecanvas', someid);
 			socket.broadcast.emit('deletecanvas', someid);
 		}
@@ -952,20 +737,11 @@ welcome.on('connection', function (socket) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
-		var current = servercanvasframes.head;
-		var correctframe = null;
-		for (var i = 0; i < servercanvasframes.length; i++) {
-			if (current.value.id === someid) {
-				correctframe = current.value;
-				break;
-			}
-			current = current.next;
-		}
-		if (correctframe) {
-			if (correctframe.owner.includes(userplayerId)) {
-				if (correctframe.timestamp < newtimestamp) {
-					correctframe.content = someJSON;
-					correctframe.timestamp = newtimestamp;
+		if (servercanvasframes[someid]) {
+			if (servercanvasframes[someid].owner.includes(userplayerId)) {
+				if (servercanvasframes[someid].timestamp < newtimestamp) {
+					servercanvasframes[someid].content = someJSON;
+					servercanvasframes[someid].timestamp = newtimestamp;
 					
 					socket.emit('updatecanvascontent', someid, someJSON, newtimestamp);
 					socket.broadcast.emit('updatecanvascontent', someid, someJSON, newtimestamp);
@@ -978,24 +754,15 @@ welcome.on('connection', function (socket) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
-		var current = servercanvasframes.head;
-		var correctframe = null;
-		for (var i = 0; i < servercanvasframes.length; i++) {
-			if (current.value.id === someid) {
-				correctframe = current.value;
-				break;
-			}
-			current = current.next;
-		}
-		if (correctframe) {
-			if (correctframe.owner.includes(userplayerId)) {
-				if (correctframe.timestamp < newtimestamp) {
-					correctframe.x = newx;
-					correctframe.y = newy;
+		if (servercanvasframes[someid]) {
+			if (servercanvasframes[someid].owner.includes(userplayerId)) {
+				if (servercanvasframes[someid].timestamp < newtimestamp) {
+					servercanvasframes[someid].x = newx;
+					servercanvasframes[someid].y = newy;
 					
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
-					correctframe.timestamp = newtimestamp;
+					servercanvasframes[someid].timestamp = newtimestamp;
 					if ( currenttime - lasttime >= 1000/100) {
 						lasttime = currenttime;
 						socket.emit('updatecanvasframeposition', someid, newx, newy, newtimestamp);
@@ -1003,26 +770,6 @@ welcome.on('connection', function (socket) {
 					}
 				}
 			} 
-		}
-	});
-	socket.on('requestrestoreimage', function (someid) {
-		var current = serverimageframes.head;
-		for (var i = 0; i < serverimageframes.length; i++) {
-			if (current.value.id === someid) {
-				socket.emit('updateimageframe', current.value);
-				break;
-			}
-			current = current.next;
-		}
-	});
-	socket.on('requestrestoretoken', function (someid) {
-		var current = servertokenframes.head;
-		for (var i = 0; i < servertokenframes.length; i++) {
-			if (current.value.id === someid) {
-				socket.emit('updatetokenframe', current.value);
-				break;
-			}
-			current = current.next;
 		}
 	});
 	socket.on('requestsavestate', function (somefilename) {
@@ -1090,29 +837,19 @@ welcome.on('connection', function (socket) {
 	// register client + send login options
 	socket.emit('loginoptions', players, playersloggedin);
 	
-	var current = serverimageframes.head;
-	for (var i = 0; i < serverimageframes.length; i++) {
-		socket.emit('updateimageframe', current.value);
-		current = current.next;
+	for (var current in serverimageframes) {
+		socket.emit('updateimageframe', serverimageframes[current]);
 	}
-	var current = servercanvasframes.head;
-	for (var i = 0; i < servercanvasframes.length; i++) {
-		socket.emit('updatecanvasframe', current.value);
-		current = current.next;
+	for (var current in servercanvasframes) {
+		socket.emit('updatecanvasframe', servercanvasframes[current]);
 	}
-	current = servertokenframes.head;
-	for (var i = 0; i < servertokenframes.length; i++) {
-		socket.emit('updatetokenframe', current.value);
-		current = current.next;
+	for (var current in servertokenframes) {
+		socket.emit('updatetokenframe', servertokenframes[current]);
 	}
-	current = serverdecks.head;
-	for (var i = 0; i < serverdecks.length; i++) {
-		var ccurrent = current.value.head;
-		for (var j = 0; j < current.value.length; j++) {
-			socket.emit('updatecard', ccurrent.value);
-			ccurrent = ccurrent.next;
+	for (var currentdeck in serverdecks) {
+		for (currentcard in serverdecks[currentdeck]) {
+			socket.emit('updatecard', serverdecks[currentdeck][currentcard]);
 		}
-		current = current.next;
 	}
 	socket.emit('gameoptions_update', gameoptions);
 	console.log("new client, sent login options/game data");
@@ -1133,118 +870,55 @@ function xmlsavestate(filename) {
 	
 	collecteddata += "<gameoptions>" + gameoptions.join(',') + "</gameoptions>\n";
 	
-	// note: IMPORTANT: replace &, <, > by &lt; and &gt; in strings (simply substitute this in all values)
-	var current = serverimageframes.head;
-	for (var i = 0; i < serverimageframes.length; i++) {
+	// note: IMPORTANT: replace &, <, > by &amp;, &lt; and &gt; in strings (simply substitute this in all values)
+	for (var currentimageframe in serverimageframes) {
 		collecteddata += "<imageframe>\n";
-		for (var j = 0; j < relevantdata_imageframe.length; j++) {
-			collecteddata += "\t<" + relevantdata_imageframe[j] + ">" + ("" + current.value[relevantdata_imageframe[j]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_imageframe[j] + ">\n";
+		for (var currentproperty in serverimageframes[currentimageframe]) {
+			if (currentproperty === "marker") continue;
+			if (currentproperty === "label") continue;
+			collecteddata += "\t<" + currentproperty + ">" + ("" + serverimageframes[currentimageframe][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 		}
-		for (var j = 0; j < current.value.marker.length; j++) {
+		for (var currentmarker in serverimageframes[currentimageframe]["marker"]) {
 			collecteddata += "\t<marker>\n";
-			for (var k = 0; k < relevantdata_markerframe.length; k++) {
-				collecteddata += "\t\t<" + relevantdata_markerframe[k] + ">" + ("" + current.value.marker[j][relevantdata_markerframe[k]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_markerframe[k] + ">\n";
+			for (currentproperty in serverimageframes[currentimageframe]["marker"][currentmarker]) {
+				collecteddata += "\t\t<" + currentproperty + ">" + ("" + serverimageframes[currentimageframe]["marker"][currentmarker][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 			}
 			collecteddata += "\t</marker>\n";
 		}
-		for (var j = 0; j < current.value.label.length; j++) {
+		for (var currentlabel in serverimageframes[currentimageframe]["label"]) {
 			collecteddata += "\t<label>\n";
-			for (var k = 0; k < relevantdata_framelabel.length; k++) {
-				collecteddata += "\t\t<" + relevantdata_framelabel[k] + ">" + ("" + current.value.label[j][relevantdata_framelabel[k]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_framelabel[k] + ">\n";
+			for (currentproperty in serverimageframes[currentimageframe]["label"][currentlabel]) {
+				collecteddata += "\t\t<" + currentproperty + ">" + ("" + serverimageframes[currentimageframe]["label"][currentlabel][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 			}
 			collecteddata += "\t</label>\n";
 		}
 		collecteddata += "</imageframe>\n";
-		current = current.next;
 	}
-	current = servertokenframes.head;
-	for (var i = 0; i < servertokenframes.length; i++) {
+	for (var currenttokenframe in servertokenframes) {
 		collecteddata += "<tokenframe>\n";
-		for (var j = 0; j < relevantdata_tokenframe.length; j++) {
-			collecteddata += "\t<" + relevantdata_tokenframe[j] + ">" + ("" + current.value[relevantdata_tokenframe[j]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_tokenframe[j] + ">\n";
+		for (var currentproperty in servertokenframes[currenttokenframe]) {
+			collecteddata += "\t<" + currentproperty + ">" + ("" + servertokenframes[currenttokenframe][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 		}
 		collecteddata += "</tokenframe>\n";
-		current = current.next;
 	}
-	var currentdeck = serverdecks.head;
-	for (var i = 0; i < serverdecks.length; i++) {
-		current = currentdeck.value.head;
-		for (var j = 0; j < currentdeck.value.length; j++) {
+	for (var currentdeck in serverdecks) {
+		for (var currentcard in serverdecks[currentdeck]) {
 			collecteddata += "<card>\n";
-			for (var k = 0; k < relevantdata_card.length; k++) {
-				collecteddata += "\t<" + relevantdata_card[k] + ">" + ("" + current.value[relevantdata_card[k]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_card[k] + ">\n";
+			for (var currentproperty in serverdecks[currentdeck][currentcard]) {
+				collecteddata += "\t<" + currentproperty + ">" + ("" + serverdecks[currentdeck][currentcard][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 			}
 			collecteddata += "</card>\n";
-			current = current.next;
 		}
-		currentdeck = currentdeck.next;
 	}
-	current = servercanvasframes.head;
-	for (var i = 0; i < servercanvasframes.length; i++) {
+	for (var currentcanvasframe in servercanvasframes) {
 		collecteddata += "<canvasframe>\n";
-		for (var j = 0; j < relevantdata_canvasframe.length; j++) {
-			collecteddata += "\t<" + relevantdata_canvasframe[j] + ">" + ("" + current.value[relevantdata_canvasframe[j]]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + relevantdata_canvasframe[j] + ">\n";
+		for (var currentproperty in servercanvasframes[currentcanvasframe]) {
+			collecteddata += "\t<" + currentproperty + ">" + ("" + servercanvasframes[currentcanvasframe][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 		}
 		collecteddata += "</canvasframe>\n";
-		current = current.next;
 	}
 	
 	collecteddata += "</xml>";
-	fs.writeFileSync(filename, collecteddata);
-}
-
-function savestate(filename) {
-	console.log('WARNING: DEPRECATED SAVESTATE PROCEDURE HAS BEEN CALLED.')
-	var collecteddata = "" + new Date() + "\n" + version + "\n";
-	
-	collecteddata += gameoptions.join(',') + "\n";
-	
-	var current = serverimageframes.head;
-	for (var i = 0; i < serverimageframes.length; i++) {
-		collecteddata += "================" + "\n";
-		collecteddata += ContainerTypes.FrameContainer + "\n";
-		for (var j = 0; j < relevantdata_imageframe.length; j++) {
-			collecteddata += current.value[relevantdata_imageframe[j]] + "\n";
-		}
-		for (var j = 0; j < current.value.marker.length; j++) {
-			collecteddata += "================" + "\n";
-			collecteddata += ContainerTypes.Marker + "\n";
-			for (var k = 0; k < relevantdata_markerframe.length; k++) {
-				collecteddata += current.value.marker[j][relevantdata_markerframe[k]] + "\n";
-			}
-		}
-		for (var j = 0; j < current.value.label.length; j++) {
-			collecteddata += "================" + "\n";
-			collecteddata += ContainerTypes.FrameLabel + "\n";
-			for (var k = 0; k < relevantdata_framelabel.length; k++) {
-				collecteddata += current.value.label[j][relevantdata_framelabel[k]] + "\n";
-			}
-		}
-		current = current.next;
-	}
-	current = servertokenframes.head;
-	for (var i = 0; i < servertokenframes.length; i++) {
-		collecteddata += "================" + "\n";
-		collecteddata += ContainerTypes.TokenContainer + "\n";
-		for (var j = 0; j < relevantdata_tokenframe.length; j++) {
-			collecteddata += current.value[relevantdata_tokenframe[j]] + "\n";
-		}
-		current = current.next;
-	}
-	var currentdeck = serverdecks.head;
-	for (var i = 0; i < serverdecks.length; i++) {
-		current = currentdeck.value.head;
-		for (var j = 0; j < currentdeck.value.length; j++) {
-			collecteddata += "================" + "\n";
-			collecteddata += ContainerTypes.Card + "\n";
-			for (var k = 0; k < relevantdata_card.length; k++) {
-				collecteddata += current.value[relevantdata_card[k]] + "\n";
-			}
-			current = current.next;
-		}
-		currentdeck = currentdeck.next;
-	}
-	
 	fs.writeFileSync(filename, collecteddata);
 }
 
