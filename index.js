@@ -537,7 +537,7 @@ welcome.on('connection', function (socket) {
 		}
 	});
 	socket.on('requestrestoretoken', function (someid) {
-		if (servertokenframes[someid]) socket.emit('updateimageframe', servertokenframes[someid]);
+		if (servertokenframes[someid]) socket.emit('updatetokenframe', servertokenframes[someid]);
 	});
 	socket.on('pushcard', function (somecard) {
 		if (userplayerId === -1 && !alertednotloggedin) {
@@ -660,18 +660,100 @@ welcome.on('connection', function (socket) {
 					var originalindex = serverdecks[somedeckid][somecardid].zIndex;
 					for (var currentcard in serverdecks[somedeckid]) {
 						maxzIndex = Math.max(maxzIndex, serverdecks[somedeckid][currentcard].zIndex);
-						if (serverdecks[somedeckid][currentcard].zIndex >= serverdecks[somedeckid][somecardid].zIndex) {
+						if (serverdecks[somedeckid][currentcard].cardid !== serverdecks[somedeckid][somecardid].cardid
+						    && serverdecks[somedeckid][currentcard].zIndex >= serverdecks[somedeckid][somecardid].zIndex) {
 							serverdecks[somedeckid][currentcard].zIndex -= 1;
 							serverdecks[somedeckid][currentcard].timestamp = newtimestamp;
 							socket.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][currentcard].cardid, serverdecks[somedeckid][currentcard].zIndex, newtimestamp);
 							socket.broadcast.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][currentcard].cardid, serverdecks[somedeckid][currentcard].zIndex, newtimestamp);
 						}
 					}
-					serverdecks[somedeckid][somecardid].timestamp = newtimestamp;
-					serverdecks[somedeckid][somecardid].zIndex = maxzIndex;
-					socket.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
-					socket.broadcast.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
+					if (maxzIndex !== serverdecks[somedeckid][somecardid].zIndex) {
+						serverdecks[somedeckid][somecardid].timestamp = newtimestamp;
+						serverdecks[somedeckid][somecardid].zIndex = maxzIndex;
+						socket.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
+						socket.broadcast.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
+					}
 				} 
+			}
+		}
+	});
+	socket.on('dragcardstacktotop', function (cardlist, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		var cardlists = {};
+		for (var i = 0; i < cardlist.length; i++) {
+			var currentdeckid = cardlist[i].split('.')[0];
+			var currentcardid = cardlist[i].split('.')[1];
+			if (serverdecks[currentdeckid]) {
+				if (!cardlists[currentdeckid]) cardlists[currentdeckid] = [];
+				if (serverdecks[currentdeckid][currentcardid]) {
+					if (serverdecks[currentdeckid][currentcardid].owner.includes(userplayerId)) {
+						cardlists[currentdeckid].push(serverdecks[currentdeckid][currentcardid]);
+					}
+				}
+			}
+		}
+		var _cardlists = {};
+		for (var deck in serverdecks) {
+			if (cardlists[deck]) {
+				_cardlists[deck] = [];
+				for (var card in serverdecks[deck]) {
+					if (!cardlist.includes(deck + "." + card)) {
+						if (serverdecks[deck][card].owner.includes(userplayerId)) {
+							_cardlists[deck].push(serverdecks[deck][card]);
+						}
+					}
+				}
+			}
+		}
+		for (var cardlist in cardlists) {
+			cardlists[cardlist].sort(function (a, b) {
+						// a should come before b in the sorted order
+						if (a.zIndex < b.zIndex) {
+						      return -1;
+						// a should come after b in the sorted order
+						} else if (a.zIndex > b.zIndex) {
+						      return 1;
+						// a and b are the same
+						} else {
+						      return 0;
+						}
+				});
+			_cardlists[cardlist].sort(function (a, b) {
+						// a should come before b in the sorted order
+						if (a.zIndex < b.zIndex) {
+						      return -1;
+						// a should come after b in the sorted order
+						} else if (a.zIndex > b.zIndex) {
+						      return 1;
+						// a and b are the same
+						} else {
+						      return 0;
+						}
+				});
+			var minzrest = cardlists[cardlist][1].zIndex;
+			if (_cardlists[cardlist][0]) minzrest = _cardlists[cardlist][0].zIndex;
+			var minz = Math.min(cardlists[cardlist][0].zIndex, minzrest);
+			var maxz = minz + Object.keys(serverdecks[cardlists[cardlist][0].deckid]).length - 1;
+			
+			for (var i = 0; i < cardlists[cardlist].length; i++) {
+				if (cardlists[cardlist][i].zIndex !== maxz - cardlists[cardlist].length + 1 + i) {
+					cardlists[cardlist][i].timestamp = newtimestamp;
+					cardlists[cardlist][i].zIndex = maxz - cardlists[cardlist].length + 1 + i;
+					socket.emit('changecardzIndex', cardlists[cardlist][i].deckid, cardlists[cardlist][i].cardid, cardlists[cardlist][i].zIndex, newtimestamp);
+					socket.broadcast.emit('changecardzIndex', cardlists[cardlist][i].deckid, cardlists[cardlist][i].cardid, cardlists[cardlist][i].zIndex, newtimestamp);
+				}
+			}
+			for (var i = 0; i < _cardlists[cardlist].length; i++) {
+				if (_cardlists[cardlist][i].zIndex !== minz + i) {
+					_cardlists[cardlist][i].timestamp = newtimestamp;
+					_cardlists[cardlist][i].zIndex = minz + i;
+					socket.emit('changecardzIndex', _cardlists[cardlist][i].deckid, _cardlists[cardlist][i].cardid, _cardlists[cardlist][i].zIndex, newtimestamp);
+					socket.broadcast.emit('changecardzIndex', _cardlists[cardlist][i].deckid, _cardlists[cardlist][i].cardid, _cardlists[cardlist][i].zIndex, newtimestamp);
+				}
 			}
 		}
 	});
@@ -704,6 +786,11 @@ welcome.on('connection', function (socket) {
 			socket.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
 			socket.broadcast.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
 		}
+	});
+	socket.on('requestrestorecard', function (somedeckid, somecardid) {
+		if (serverdecks[somedeckid]) {
+			if (serverdecks[somedeckid][somecardid]) socket.emit('updatecardframe', serverdecks[somedeckid][somecardid]);
+		}	
 	});
 	socket.on('pushcanvas', function (somecanvas) {
 		if (userplayerId === -1 && !alertednotloggedin) {
@@ -771,6 +858,9 @@ welcome.on('connection', function (socket) {
 				}
 			} 
 		}
+	});
+	socket.on('requestrestorecanvas', function (someid) {
+		if (servercanvasframes[someid]) socket.emit('updatecanvasframe', servercanvasframes[someid]);
 	});
 	socket.on('requestsavestate', function (somefilename) {
 		if (userplayerId === 0) {
