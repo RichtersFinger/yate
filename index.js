@@ -164,6 +164,7 @@ app.get('/', function(req, res){
 });
 
 app.use("/img", express.static('img'));
+app.use('/favicon.ico', express.static('img/_server_/logo.ico'));
 
 app.use("/data", express.static('data'));
 
