@@ -936,9 +936,29 @@ welcome.on('connection', function (socket) {
 					//	socket.broadcast.emit('playsound', 
 				
 					// send info to owner
+					if (!serverlotteryframes[someid].isturnindicator)
+						socket.emit('printevent', 'You picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
 				
 					if (showeventlog) {
-						socket.broadcast.emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+						var someresult = serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex];
+						if (serverlotteryframes[someid].isturnindicator) {
+							if (someresult.charAt(someresult.length - 1) == "s") {
+								socket.emit('printevent', 'Next: ' + someresult + "' turn.");
+								socket.broadcast.emit('printevent', 'Next: ' + someresult + "' turn.");
+							} else {
+								socket.emit('printevent', 'Next: ' + someresult + "'s turn.");
+								socket.broadcast.emit('printevent', 'Next: ' + someresult + "'s turn.");
+							}	
+						} else {
+							socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
+							for (var i = 1; i < players.length; i++) {
+								//if (playersloggedin[i]) {
+									if (serverlotteryframes[someid].viewingrights.includes(i)) {
+										socket.broadcast.to(playersuserId[i]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
+									}
+								//}
+							}
+						}
 					} else {
 						socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
 					}
