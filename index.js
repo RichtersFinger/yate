@@ -215,20 +215,15 @@ server.listen(port, function(){
 	console.log('List of players:', players);
 });
 
-const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7};
+const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8};
 
-var serverimageframes = {};
-var relevantdata_imageframe = ["id", "owner", "streamposition", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "filename", "zIndex", "markeridcounter", "labelidcounter", "visible"];
-var relevantdata_canvasframe = ["id", "owner", "streamposition", "streamcontent", "fixposition", "timestamp", "x", "y", "width", "height", "scale", "content", "zIndex"];
-var relevantdata_markerframe = ["id", "hasdescription", "x", "y", "size", "scale", "zIndex", "descfilename", "descname", "desctext"];
-var relevantdata_framelabel = ["id", "x", "y", "scale", "zIndex", "currenttext", "textcolor", "angle", "ctradius", "ctdir"];
-var relevantdata_tokenframe = ["id", "owner", "streamposition", "hasdescription", "timestamp", "x", "y", "size", "offsetx", "offsety", "scale", "bordercolor", "filename", "zIndex", "descname", "descfilename", "desctext", "visible"];
-var relevantdata_card = ["deckid", "cardid", "owner", "viewingrights", "streamposition", "timestamp", "x", "y", "angle", "faceup", "width", "height", "scale", "bordercolor", "filenamefront", "filenameback", "zIndex"];
-var servertokenframes =  {};
 var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
+var serverimageframes = {};
+var servertokenframes =  {};
 var serverdecks = {};
 var servercanvasframes = {};
+var serverlotteryframes = {};
 
 var gameoptions = [];
 
@@ -869,6 +864,92 @@ welcome.on('connection', function (socket) {
 			xmlsavestate(somefilename);
 		}
 	});
+	socket.on('pushlottery', function (someframe) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serverlotteryframes[someframe.id]) {
+				console.log("GM updated lottery " + someframe.id + ".");
+			} else {
+				console.log("GM pushed new lottery " + someframe.id + ".");
+			}
+			serverlotteryframes[someframe.id] = someframe;
+			socket.emit('updatelotteryframe', serverlotteryframes[someframe.id]);
+			socket.broadcast.emit('updatelotteryframe', serverlotteryframes[someframe.id]);
+		}
+	});
+	socket.on('updatelotteryposition', function (someid, newx, newy, newindex, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (serverlotteryframes[someid]) {
+			if (serverlotteryframes[someid].owner.includes(userplayerId)) {
+				if (serverlotteryframes[someid].timestamp < newtimestamp) {
+					serverlotteryframes[someid].x = newx;
+					serverlotteryframes[someid].y = newy;
+					serverlotteryframes[someid].currentindex = newindex;
+					
+					var currentdate = new Date();
+					currenttime = currentdate.getTime();
+					serverlotteryframes[someid].timestamp = newtimestamp;
+					if ( currenttime - lasttime >= 1000/100) {
+						lasttime = currenttime;
+						socket.emit('updatelotteryframeposition', someid, newx, newy, newindex, newtimestamp);
+						socket.broadcast.emit('updatelotteryframeposition', someid, newx, newy, newindex, newtimestamp);
+					}
+				}
+			} 
+		}
+	});
+	socket.on('pushdeletelottery', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serverlotteryframes[someid]) delete serverlotteryframes[someid];
+			socket.emit('deletelottery', someid);
+			socket.broadcast.emit('deletelottery', someid);
+		}
+	});
+	socket.on('reqlotterypick', function (someid, newtimestamp, newindex) {
+		if (serverlotteryframes[someid]) {
+			if (serverlotteryframes[someid].owner.includes(userplayerId)) {
+				if (newindex !== undefined) {
+					serverlotteryframes[someid].currentindex = newindex;
+				} else {
+					if (serverlotteryframes[someid].selectatrandom) {
+						serverlotteryframes[someid].currentindex = Math.floor(serverlotteryframes[someid].options.length * random());
+					} else {
+						serverlotteryframes[someid].currentindex = (serverlotteryframes[someid].currentindex + 1) % serverlotteryframes[someid].options.length;
+					}
+				}
+				serverlotteryframes[someid].timestamp = newtimestamp;
+				socket.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
+				socket.broadcast.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
+				console.log('Player ' + players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery ' + someid +  '.');
+				if (serverlotteryframes[someid].publicresult) {
+					//if (serverlotteryframes[someid].playsound)
+					//	socket.broadcast.emit('playsound', 
+				
+					// send info to owner
+				
+					if (showeventlog) {
+						socket.broadcast.emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+					} else {
+						socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+					}
+				} else {
+					socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+				}
+			}
+		}
+	});
+	
+	
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
 		socket.emit('setdievalue', someid, dieresult);
@@ -942,9 +1023,12 @@ welcome.on('connection', function (socket) {
 			socket.emit('updatecard', serverdecks[currentdeck][currentcard]);
 		}
 	}
+	for (var current in serverlotteryframes) {
+		socket.emit('updatelotteryframe', serverlotteryframes[current]);
+	}
 	socket.emit('gameoptions_update', gameoptions);
 	console.log("new client, sent login options/game data");
-}); 
+});
 
 
 var counter = 0;
