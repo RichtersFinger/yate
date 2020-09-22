@@ -1,11 +1,14 @@
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
-var io = require('socket.io')(server);
+var io = require('socket.io')(server, {
+	  pingInterval: 25000,
+	  pingTimeout: 60000
+  });
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.4";
+const version = "1.5";
 
 
 class sLinkedList {
@@ -730,7 +733,7 @@ welcome.on('connection', function (socket) {
 						      return 0;
 						}
 				});
-			var minzrest = cardlists[cardlist][1].zIndex;
+			var minzrest = cardlists[cardlist][0].zIndex;
 			if (_cardlists[cardlist][0]) minzrest = _cardlists[cardlist][0].zIndex;
 			var minz = Math.min(cardlists[cardlist][0].zIndex, minzrest);
 			var maxz = minz + Object.keys(serverdecks[cardlists[cardlist][0].deckid]).length - 1;
@@ -861,7 +864,8 @@ welcome.on('connection', function (socket) {
 	socket.on('requestsavestate', function (somefilename) {
 		if (userplayerId === 0) {
 			console.log('Saving backup as', somefilename);
-			xmlsavestate(somefilename);
+			var savefilecontent = xmlsavestate(somefilename);
+			socket.emit('providesavefile', somefilename.slice(somefilename.lastIndexOf('/') + 1), savefilecontent);
 		}
 	});
 	socket.on('pushlottery', function (someframe) {
@@ -1017,6 +1021,16 @@ welcome.on('connection', function (socket) {
 			socket.broadcast.emit('playsound', somesound, looping);
 		}
 	});
+	socket.on('requestqueueTTS', function (somemessage) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			socket.emit('queueTTS', somemessage);
+			socket.broadcast.emit('queueTTS', somemessage);
+		}
+	});
 	socket.on('requeststopsound', function () {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
@@ -1118,9 +1132,18 @@ function xmlsavestate(filename) {
 		}
 		collecteddata += "</canvasframe>\n";
 	}
+	for (var currentlotteryframe in serverlotteryframes) {
+		collecteddata += "<lotteryframe>\n";
+		for (var currentproperty in serverlotteryframes[currentlotteryframe]) {
+			collecteddata += "\t<" + currentproperty + ">" + ("" + serverlotteryframes[currentlotteryframe][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
+		}
+		collecteddata += "</lotteryframe>\n";
+	}
 	
 	collecteddata += "</xml>";
 	fs.writeFileSync(filename, collecteddata);
+	
+	return collecteddata;
 }
 
 function handlenotloggedinwarning(somesocket, somemsg) {
