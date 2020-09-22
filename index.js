@@ -931,10 +931,17 @@ welcome.on('connection', function (socket) {
 				socket.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
 				socket.broadcast.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
 				console.log('Player ' + players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery ' + someid +  '.');
+				if (serverlotteryframes[someid].playsound) {
+					for (var i = 1; i < players.length; i++) {
+						if (serverlotteryframes[someid].viewingrights.includes(i)) {
+							socket.broadcast.to(playersuserId[i]).emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
+						}
+					}
+					// broadcast.to does not send to issuing client
+					if (userplayerId !== 0 && serverlotteryframes[someid].viewingrights.includes(userplayerId)) socket.emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
+				}
 				if (serverlotteryframes[someid].publicresult) {
-					//if (serverlotteryframes[someid].playsound)
-					//	socket.broadcast.emit('playsound', 
-				
+					
 					// send info to owner
 					if (!serverlotteryframes[someid].isturnindicator)
 						socket.emit('printevent', 'You picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
@@ -942,7 +949,7 @@ welcome.on('connection', function (socket) {
 					if (showeventlog) {
 						var someresult = serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex];
 						if (serverlotteryframes[someid].isturnindicator) {
-							if (someresult.charAt(someresult.length - 1) == "s") {
+							if (someresult.charAt(someresult.length - 1) == "s" || someresult.charAt(someresult.length - 1) == "x" || someresult.charAt(someresult.length - 1) == "z") {
 								socket.emit('printevent', 'Next: ' + someresult + "' turn.");
 								socket.broadcast.emit('printevent', 'Next: ' + someresult + "' turn.");
 							} else {
@@ -952,11 +959,10 @@ welcome.on('connection', function (socket) {
 						} else {
 							socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
 							for (var i = 1; i < players.length; i++) {
-								//if (playersloggedin[i]) {
-									if (serverlotteryframes[someid].viewingrights.includes(i)) {
-										socket.broadcast.to(playersuserId[i]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
-									}
-								//}
+								if (serverlotteryframes[someid].viewingrights.includes(i)) {
+									// broadcast.to does not send to issuing client
+									socket.broadcast.to(playersuserId[i]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
+								}
 							}
 						}
 					} else {
