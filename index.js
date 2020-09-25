@@ -218,7 +218,7 @@ server.listen(port, function(){
 	console.log('List of players:', players);
 });
 
-const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8};
+const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9};
 
 var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
@@ -227,6 +227,7 @@ var servertokenframes =  {};
 var serverdecks = {};
 var servercanvasframes = {};
 var serverlotteryframes = {};
+var serverpublicdieframes = {};
 
 var gameoptions = [];
 
@@ -978,8 +979,98 @@ welcome.on('connection', function (socket) {
 			}
 		}
 	});
-	
-	
+	socket.on('pushpublicdie', function (someframe) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serverpublicdieframes[someframe.id]) {
+				console.log("GM updated die " + someframe.id + ".");
+			} else {
+				console.log("GM pushed new die " + someframe.id + ".");
+			}
+			serverpublicdieframes[someframe.id] = someframe;
+			socket.emit('updatepublicdieframe', serverpublicdieframes[someframe.id]);
+			socket.broadcast.emit('updatepublicdieframe', serverpublicdieframes[someframe.id]);
+		}
+	});
+	socket.on('updatepublicdieposition', function (someid, newx, newy, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (serverpublicdieframes[someid]) {
+			if (serverpublicdieframes[someid].owner.includes(userplayerId)) {
+				if (serverpublicdieframes[someid].timestamp < newtimestamp) {
+					serverpublicdieframes[someid].x = newx;
+					serverpublicdieframes[someid].y = newy;
+					
+					var currentdate = new Date();
+					currenttime = currentdate.getTime();
+					serverpublicdieframes[someid].timestamp = newtimestamp;
+					if ( currenttime - lasttime >= 1000/100) {
+						lasttime = currenttime;
+						socket.emit('updatepublicdieframeposition', someid, newx, newy, newtimestamp);
+						socket.broadcast.emit('updatepublicdieframeposition', someid, newx, newy, newtimestamp);
+					}
+				}
+			} 
+		}
+	});
+	socket.on('pushdeletepublicdie', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serverpublicdieframes[someid]) delete serverpublicdieframes[someid];
+			socket.emit('deletepublicdieframe', someid);
+			socket.broadcast.emit('deletepublicdieframe', someid);
+		}
+	});
+	socket.on('reqpublicdieset', function (someid, newvalue, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (serverpublicdieframes[someid]) {
+			if (serverpublicdieframes[someid].owner.includes(userplayerId)) {
+				if (serverpublicdieframes[someid].timestamp < newtimestamp) {
+					serverpublicdieframes[someid].timestamp = newtimestamp;
+					serverpublicdieframes[someid].value = newvalue;
+					
+					var dieresult = serverpublicdieframes[someid].value;
+					socket.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
+					socket.broadcast.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
+				}
+			}
+		}
+	});
+	socket.on('reqpublicdiceroll', function (someid, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (serverpublicdieframes[someid]) {
+			if (serverpublicdieframes[someid].owner.includes(userplayerId)) {
+				//if (serverpublicdieframes[someid].timestamp < newtimestamp) {
+					serverpublicdieframes[someid].timestamp = newtimestamp;
+					serverpublicdieframes[someid].value = Math.floor(1 + serverpublicdieframes[someid].maxvalue * random());
+					
+					var dieresult = serverpublicdieframes[someid].value;
+					socket.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
+					socket.broadcast.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
+					console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
+					if (gameoptions.includes('hugo')) {
+						if (serverpublicdieframes[someid].maxvalue == 6 && dieresult === 6) dieresult = "hugo";
+					} 
+					socket.emit('printevent', 'You rolled a ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
+					socket.broadcast.emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
+				//}
+			}
+		}
+	});
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
 		socket.emit('setdievalue', someid, dieresult);
@@ -1066,6 +1157,9 @@ welcome.on('connection', function (socket) {
 	for (var current in serverlotteryframes) {
 		socket.emit('updatelotteryframe', serverlotteryframes[current]);
 	}
+	for (var current in serverpublicdieframes) {
+		socket.emit('updatepublicdieframe', serverpublicdieframes[current]);
+	}
 	socket.emit('gameoptions_update', gameoptions);
 	console.log("new client, sent login options/game data");
 });
@@ -1138,6 +1232,13 @@ function xmlsavestate(filename) {
 			collecteddata += "\t<" + currentproperty + ">" + ("" + serverlotteryframes[currentlotteryframe][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 		}
 		collecteddata += "</lotteryframe>\n";
+	}
+	for (var currentdie in serverpublicdieframes) {
+		collecteddata += "<dieframe>\n";
+		for (var currentproperty in serverpublicdieframes[currentdie]) {
+			collecteddata += "\t<" + currentproperty + ">" + ("" + serverpublicdieframes[currentdie][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
+		}
+		collecteddata += "</dieframe>\n";
 	}
 	
 	collecteddata += "</xml>";
