@@ -196,12 +196,6 @@ server.listen(port, function(){
 	    console.log('Listening on ' + ip + ":" + 8081 + ' (LAN)');
 	});
 	
-	var currentdate = new Date();
-	initialtime = currentdate.getTime();
-	currenttime = initialtime;
-	lasttime = currenttime;
-	
-	rngseed(currenttime);
 	
 	var interval = 5 * 60 * 1000;
 	setTimeout(function(){backups(interval);}, interval);
@@ -216,6 +210,15 @@ server.listen(port, function(){
 		playersloggedin.push(false);
 	}
 	console.log('List of players:', players);
+	
+	var currentdate = new Date();
+	initialtime = currentdate.getTime();
+	currenttime = initialtime;
+	for (var i = 0; i < players.length; i++) {
+		lasttimes[i] = currenttime;
+	}
+	
+	rngseed(currenttime);
 });
 
 const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9};
@@ -231,7 +234,7 @@ var serverpublicdieframes = {};
 
 var gameoptions = [];
 
-var initialtime, currenttime, lasttime;
+var initialtime, currenttime, lasttime, lasttimes = [];
 
 
 
@@ -434,8 +437,8 @@ welcome.on('connection', function (socket) {
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					serverimageframes[someid].timestamp = newtimestamp;
-					if ( currenttime - lasttime >= 1000/100) {
-						lasttime = currenttime;
+					if ( currenttime - lasttimes[userplayerId] >= 1000/100) {
+						lasttimes[userplayerId] = currenttime;
 						socket.emit('updateimageframeposition', someid, newx, newy, newtimestamp);
 						socket.broadcast.emit('updateimageframeposition', someid, newx, newy, newtimestamp);
 					}
@@ -513,8 +516,8 @@ welcome.on('connection', function (socket) {
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					servertokenframes[someid].timestamp = newtimestamp;
-					if (currenttime - lasttime >= 1000/100) {
-						lasttime = currenttime;
+					if (currenttime - lasttimes[userplayerId] >= 1000/100) {
+						lasttimes[userplayerId] = currenttime;
 						socket.emit('updatetokenframeposition', someid, newx, newy, newtimestamp);
 						socket.broadcast.emit('updatetokenframeposition', someid, newx, newy, newtimestamp);
 					}
@@ -638,11 +641,12 @@ welcome.on('connection', function (socket) {
 						var currentdate = new Date();
 						currenttime = currentdate.getTime();
 						serverdecks[somedeckid][somecardid].timestamp = newtimestamp;
-						//if ( currenttime - lasttime >= 1000/100 || newfaceup !== correctcard.faceup || newangle != correctcard.angle) {
-							lasttime = currenttime;
+					// lasttime-does not work due to multiple cards being movable at once -> make updatecardstack for fix
+					//	if (currenttime - lasttimes[userplayerId] >= 1000/100 || newfaceup !== serverdecks[somedeckid][somecardid].faceup || newangle != serverdecks[somedeckid][somecardid].angle) {
+							lasttimes[userplayerId] = currenttime;
 							socket.emit('updatecardposition', somedeckid, somecardid, newx, newy, newangle, newfaceup, newtimestamp);
 							socket.broadcast.emit('updatecardposition', somedeckid, somecardid, newx, newy, newangle, newfaceup, newtimestamp);
-						//}
+					//	}
 					}
 				} 
 			}
@@ -850,8 +854,8 @@ welcome.on('connection', function (socket) {
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					servercanvasframes[someid].timestamp = newtimestamp;
-					if ( currenttime - lasttime >= 1000/100) {
-						lasttime = currenttime;
+					if ( currenttime - lasttimes[userplayerId] >= 1000/100) {
+						lasttimes[userplayerId] = currenttime;
 						socket.emit('updatecanvasframeposition', someid, newx, newy, newtimestamp);
 						socket.broadcast.emit('updatecanvasframeposition', someid, newx, newy, newtimestamp);
 					}
@@ -900,8 +904,8 @@ welcome.on('connection', function (socket) {
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					serverlotteryframes[someid].timestamp = newtimestamp;
-					if ( currenttime - lasttime >= 1000/100) {
-						lasttime = currenttime;
+					if ( currenttime - lasttimes[userplayerId] >= 1000/100) {
+						lasttimes[userplayerId] = currenttime;
 						socket.emit('updatelotteryframeposition', someid, newx, newy, newindex, newtimestamp);
 						socket.broadcast.emit('updatelotteryframeposition', someid, newx, newy, newindex, newtimestamp);
 					}
@@ -1009,8 +1013,8 @@ welcome.on('connection', function (socket) {
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					serverpublicdieframes[someid].timestamp = newtimestamp;
-					if ( currenttime - lasttime >= 1000/100) {
-						lasttime = currenttime;
+					if ( currenttime - lasttimes[userplayerId] >= 1000/100) {
+						lasttimes[userplayerId] = currenttime;
 						socket.emit('updatepublicdieframeposition', someid, newx, newy, newtimestamp);
 						socket.broadcast.emit('updatepublicdieframeposition', someid, newx, newy, newtimestamp);
 					}
