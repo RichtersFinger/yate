@@ -225,6 +225,8 @@ const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker
 
 var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
+var camera0set = false;
+var camerax, cameray, camerazoom;
 var serverimageframes = {};
 var servertokenframes =  {};
 var serverdecks = {};
@@ -372,6 +374,28 @@ welcome.on('connection', function (socket) {
 			  if (err) throw err;
 			  socket.emit('resourcelist_sound', results);
 			});
+		}
+	});
+	socket.on('camera_set', function (camerax0, cameray0, camerazoom0) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			camera0set = true;
+			camerax = camerax0;
+			cameray = cameray0;
+			camerazoom = camerazoom0;
+			socket.broadcast.emit('camera_apply', camerax0, cameray0, camerazoom0);
+		}
+	});
+	socket.on('camera_unset', function () {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			camera0set = false;
 		}
 	});
 	socket.on('gameoptions_add', function (option) {
@@ -1141,6 +1165,7 @@ welcome.on('connection', function (socket) {
 	
 	sendservertime(socket);
 	
+	if (camera0set) socket.emit('camera_apply', camerax, cameray, camerazoom);
 	// register client + send login options
 	socket.emit('loginoptions', players, playersloggedin);
 	
