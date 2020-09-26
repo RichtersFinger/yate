@@ -1097,6 +1097,7 @@ welcome.on('connection', function (socket) {
 		if (serverpublicdieframes[someid]) {
 			if (serverpublicdieframes[someid].owner.includes(userplayerId)) {
 				//if (serverpublicdieframes[someid].timestamp < newtimestamp) {
+					serverpublicdieframes[someid].isrolling = false;
 					serverpublicdieframes[someid].timestamp = newtimestamp;
 					serverpublicdieframes[someid].value = Math.floor(1 + serverpublicdieframes[someid].maxvalue * random());
 					
@@ -1112,6 +1113,20 @@ welcome.on('connection', function (socket) {
 				//}
 			}
 		}
+	});
+	socket.on('reqpublicdiceanimation', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (serverpublicdieframes[someid]) {
+			if (serverpublicdieframes[someid].owner.includes(userplayerId)) {
+				serverpublicdieframes[someid].isrolling = true;
+				socket.emit('letpublicdieanimate', someid);
+				socket.broadcast.emit('letpublicdieanimate', someid);
+			}
+		}
+		
 	});
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
