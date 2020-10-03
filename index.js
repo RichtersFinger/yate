@@ -182,6 +182,8 @@ var passwords = [];
 var playersuserId = [];
 var playersloggedin = [];
 
+var playernotes = {};
+
 const port = 8080;
 server.listen(port, function(){
 	//npm install external-ip
@@ -208,6 +210,7 @@ server.listen(port, function(){
 		passwords.push(current[1]);
 		playersuserId.push(-1);
 		playersloggedin.push(false);
+		playernotes[i] = "";
 	}
 	console.log('List of players:', players);
 	
@@ -294,6 +297,7 @@ welcome.on('connection', function (socket) {
 					if (playingsound) {
 						socket.emit('playsound', lastsound, lastsoundlooping);
 					}
+					if (playernotes[userplayerId]) socket.emit('updateplayernotes', userplayerId, playernotes[userplayerId]);
 					
 					if (userplayerId === 0) {
 						resourcelist('img', function(err, results) {
@@ -454,6 +458,20 @@ welcome.on('connection', function (socket) {
 			socket.emit('updateimageframe', serverimageframes[someframe.id]);
 			socket.broadcast.emit('updateimageframe', serverimageframes[someframe.id]);
 		}
+	});
+	socket.on('submitplayernotes', function (someplayer, somenotes) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (someplayer === userplayerId || someplayer === 0) {
+			if (typeof somenotes == "string") {
+				playernotes[someplayer] = somenotes;
+				
+				// broadcast.to does not send to issuing client
+				socket.broadcast.to(playersuserId[0]).emit('updateplayernotes', someplayer, somenotes);
+			}
+		} 
 	});
 	socket.on('updateimageposition', function (someid, newx, newy, newtimestamp) {
 		if (userplayerId === -1 && !alertednotloggedin) {
