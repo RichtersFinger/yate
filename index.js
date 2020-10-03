@@ -297,7 +297,13 @@ welcome.on('connection', function (socket) {
 					if (playingsound) {
 						socket.emit('playsound', lastsound, lastsoundlooping);
 					}
-					if (playernotes[userplayerId]) socket.emit('updateplayernotes', userplayerId, playernotes[userplayerId]);
+					if (userplayerId === 0) {
+						for (var someplayer in playernotes) {
+							socket.emit('updateplayernotes', parseInt(someplayer), playernotes[someplayer]);
+						}
+					} else {
+						if (playernotes[userplayerId]) socket.emit('updateplayernotes', userplayerId, playernotes[userplayerId]);
+					}
 					
 					if (userplayerId === 0) {
 						resourcelist('img', function(err, results) {
@@ -464,12 +470,14 @@ welcome.on('connection', function (socket) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
-		if (someplayer === userplayerId || someplayer === 0) {
+		if (someplayer === userplayerId || userplayerId === 0) {
 			if (typeof somenotes == "string") {
 				playernotes[someplayer] = somenotes;
 				
+				socket.emit('updateplayernotes', someplayer, somenotes);
 				// broadcast.to does not send to issuing client
 				socket.broadcast.to(playersuserId[0]).emit('updateplayernotes', someplayer, somenotes);
+				socket.broadcast.to(playersuserId[someplayer]).emit('updateplayernotes', someplayer, somenotes);
 			}
 		} 
 	});
@@ -1254,6 +1262,12 @@ function xmlsavestate(filename) {
 	collecteddata += "<date>" + new Date() + "</date>\n<version>" + version + "</version>\n";
 	
 	collecteddata += "<gameoptions>" + gameoptions.join(',') + "</gameoptions>\n";
+	
+	for (var currentplayernote in playernotes) {
+		collecteddata += "<playernote" + currentplayernote + ">\n";
+		collecteddata += "\t" + playernotes[currentplayernote].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "\n";
+		collecteddata += "</playernote" + currentplayernote + ">\n";
+	}
 	
 	// note: IMPORTANT: replace &, <, > by &amp;, &lt; and &gt; in strings (simply substitute this in all values)
 	for (var currentimageframe in serverimageframes) {
