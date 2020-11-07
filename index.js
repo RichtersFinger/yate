@@ -224,7 +224,7 @@ server.listen(port, function(){
 	rngseed(currenttime);
 });
 
-const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9};
+const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9};
 
 var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
