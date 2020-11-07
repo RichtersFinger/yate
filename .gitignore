@@ -1,5 +1,4 @@
-*.mp3
-*demo*.jpg
-autosave*.dat
-savestate*.dat
+font/*
+sound/*
+savestates/*
 node_modules/*
