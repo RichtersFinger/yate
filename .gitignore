@@ -1,4 +1,3 @@
-font/*
-sound/*
-savestates/*
+sound/*.mp3
+savestates/*.xml
 node_modules/*

@@ -1,3 +1,0 @@
-for game-server:
-
-node index.js
