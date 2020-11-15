@@ -1,3 +1,4 @@
 sound/*.mp3
 savestates/*.xml
 node_modules/*
+package-lock.json
