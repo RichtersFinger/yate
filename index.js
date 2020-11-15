@@ -52,7 +52,11 @@ server.listen(port, function(){
 	for (var i = 0; i < contents.length; i++) {
 		var current = contents[i].split('\t');
 		players.push(current[0]);
-		passwords.push(current[1]);
+		if (current[1]) {
+			passwords.push(current[1]);
+		} else {
+			passwords.push("");
+		}
 		playersuserId.push(-1);
 		playersloggedin.push(false);
 		playernotes[i] = "";
