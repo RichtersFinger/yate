@@ -34,8 +34,8 @@ Also have a look at the [YouTube channel](https://www.youtube.com/channel/UC_QIo
    ```console
    $ node index.js
    ```
-   in the command prompt/console. If no errors occured, the command prompt/console message shows your public IP-adress and the local port on which the server is listening in the format XXX.XXX.XXX.XXX:8080 . Paste this adress (or simply localhost:8080 if you are on the same machine) into your browser adress bar and connect to the server.
-5. In order to give other people access to your server, you have to configure your router to forward the port accordingly. Other players can then join your game using the IP-adress from above. If you want to use a different local port, simply edit the file `index.js`.
+   in the command prompt/console. If no errors occured, the command prompt/console message shows your public IP-address and the local port on which the server is listening in the format XXX.XXX.XXX.XXX:8080 . Paste this address (or simply localhost:8080 if you are on the same machine) into your browser address bar and connect to the server.
+5. In order to give other people access to your server, you have to configure your router to forward the port accordingly. Other players can then join your game using the IP-address from above. If you want to use a different local port, simply edit the file `index.js`.
 6. Prepare a list of players by simply editing the existing file `players.dat` with a text editor. The first line of that file is referring to the game master. Note, that this game master will be the only „player" having full control over game elements. You can then add the names of players for your game line by line. If you prefer to have other players to verify themselves, you can add a required passphrase separated by a tabulator behind the player name.
 
 See the [List of Features](#list-of-features) for more information on how to prepare a simple game.
@@ -46,9 +46,9 @@ See the [List of Features](#list-of-features) for more information on how to pre
 * **Move Camera**: Hold `Middle Mouse Button` and drag your mouse to move your view.
 * **Zoom In/Out**: By turning the `Mouse Wheel` you can zoom in and out of the game.
 * **Interact**: You can drag&drop most game elements (if you are permitted to by the game master) or double click with your `Left Mouse Button` to interact (e.g. double clicking on a `Die` will initiate a dice roll, whereas a double click on a `Card` will cause this card to turn over). 
-* **Modify**: By clicking with your `Right Mouse Button` you can open a [context menu](https://swisnl.github.io/jQuery-contextMenu/) of availible actions. 
+* **Modify**: By clicking with your `Right Mouse Button` you can open a [context menu](https://swisnl.github.io/jQuery-contextMenu/) of available actions. 
    
-   Game Master Controls: Aside from general settings and actions you will find a section referring to the game element clicked on. This section is initiated with a Label containing the type of the game element and its internal id. There the game master can `push`, `delete` or modify settings of this game element. See below for a detailed description of all functionalities. Most elements can also be manipulated in size or regarding the element layering by holding `Shift` or `Alt`, respectively, while turning the `Mouse Wheel`.
+   Game Master Controls: Aside from general settings and actions you will find a section referring to the game element clicked on. This section is initiated with a label containing the type of the game element and its internal id. There the game master can `push`, `delete` or modify settings of this game element. See below for a detailed description of all functionalities. Most elements can also be manipulated in size or regarding the element layering by holding `Shift` or `Alt`, respectively, while turning the `Mouse Wheel`.
 
 ### Game Elements
 Aside from the `Die` elements that are only visible for their creator, only the game master can create game elements. After creation those elements are initially only a local object until either the `Push This` or the `Push All` actions from the context menu are performed. Only then the server receives the information. In general, changes that are made in the configuration of game elements will be local until pushed to the server. In some cases there will also be shown a `Restore` option to reload the current server-side settings for the given element. Selecting `Push Delete` will immediately delete the selected element from the server. All updates the server receives are passed on to all clients.
@@ -79,7 +79,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    * **Position and Size** - note that you can also modify the position and size of this element by holding down `Shift` + dragging with `Left Mouse Button` or turning the `Mouse Wheel`, respectively
    * **Description** - toggle whether a description window will be opened upon clicking with `Left Mouse Button`
 * **Token Element**
-   The `Token` element is itended as player representation, e.g. in a regular board game or a Pen&Paper game. By selecting `Load Image` in the context menu a small window will open prompting you to select an image from a list of files in the `img/` directory. If you added new images to this directory after the server was started, click `Update List` in order to find that image via the autocomplete functionality. Alternatively, you may upload your image via drag&drop of the file onto the selection dialog. The file will then be uploaded upon the next push on this game element. 
+   The `Token` element is intended as player representation, e.g. in a regular board game or a Pen&Paper game. By selecting `Load Image` in the context menu a small window will open prompting you to select an image from a list of files in the `img/` directory. If you added new images to this directory after the server was started, click `Update List` in order to find that image via the autocomplete functionality. Alternatively, you may upload your image via drag&drop of the file onto the selection dialog. The file will then be uploaded upon the next push on this game element. 
    
    Any `Token` a player has control over is raised to the top layer making those `Tokens` always accessible.
    
@@ -147,7 +147,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    * **Lock** - toggle whether this element can be moved
    
 * **Die Element**
-   The `Die` element is the only kind of game element that all players can create. Also, this element is only visible for the local player and is not being saved when the connection is closed. This element will not be affected by repositioning of the camera or changes of the zoom. It can be rescaled be holding `Shift` while turning the `Mouse Wheel`. You can roll a `Die` by double clicking with the `Left Mouse Button` or by opening its context menu and selecting `Roll`. 
+   The `Die` element is the only kind of game element that all players can create. Also, this element is only visible for the local player and is not being saved when the connection is closed. This element will not be affected by repositioning of the camera or changes of the zoom. It can be rescaled by holding `Shift` while turning the `Mouse Wheel`. You can roll a `Die` by double clicking with the `Left Mouse Button` or by opening its context menu and selecting `Roll`. 
    
    The configurable settings for this element are:
    * **Set Die Color** - select the `Die`'s color from a list of colors
