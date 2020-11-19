@@ -78,6 +78,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    The configurable settings for this element are:
    * **Position and Size** - note that you can also modify the position and size of this element by holding down `Shift` + dragging with `Left Mouse Button` or turning the `Mouse Wheel`, respectively
    * **Description** - toggle whether a description window will be opened upon clicking with `Left Mouse Button`
+   * **Set Marker Color** - select the `Marker`'s color from a list of colors
 * **Token Element**
    The `Token` element is intended as player representation, e.g. in a regular board game or a Pen&Paper game. By selecting `Load Image` in the context menu a small window will open prompting you to select an image from a list of files in the `img/` directory. If you added new images to this directory after the server was started, click `Update List` in order to find that image via the autocomplete functionality. Alternatively, you may upload your image via drag&drop of the file onto the selection dialog. The file will then be uploaded upon the next push on this game element. 
    
@@ -221,7 +222,6 @@ Feel free to ask for help on implementation of modifications, suggest features, 
 Please refer to me via [mail](mailto:mail.yateofficial@gmail.com).
 
 Next on the list of features/changes to be implemented:
-* **Marker**: Redo `Marker` icons to stand out more.
 * **Copy**: Include copy functionality for more game elements (only `Tokens`).
 * **Chat**: Minimal text chat window. 
 * **Help**: Include in-game information regarding controls.
