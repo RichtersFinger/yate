@@ -180,6 +180,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
       * `d<deckid>dragtotop` - drag `Cards` of the deck with corresponding ID to the top on initiation of a drag
       * `d<deckid>randomizeangles` - have the orientation of a `Card` from the deck with corresponding ID be randomized by a few degrees on termination of a drag
       * `notes` - allow players to open a window where notes can be made; this can be useful for Pen&Paper games where character attributes or inventory may be noted; alternatively, the game master can use this to make player-specific notes
+      * `yahtzee` - adds a 'Roll All' option the context menu of players; selecting this will perform a `Roll` on every die available
       
    * **Remove Options**
       The prompt is automatically filled with all currently set game options. You can remove multiple options at once separated by a space.
