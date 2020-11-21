@@ -132,6 +132,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    * **Moving Rights** - controls who has permission to drag this element/these elements
    * **Viewing Rights** - controls who has the permission to view face down `Cards` or draw `Cards` to their hand
    * **Change Scale** - change the scale the selected `Cards` are displayed in
+   * **Border Color** - toggle between transparent and white border color
    * **Set Deck ID** - the layering of `Cards` from different decks of `Cards` is organized in such a way that all `Cards` from a deck with larger ID are always on top of `Cards` from decks with smaller IDs; use this setting to control what deck of `Cards` is on top of which deck
    * **Delete** - remove the selected deck from the game
 * **Lottery Element**
@@ -179,6 +180,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
       Currently the following game options are implemented:
       * `d<deckid>dragtotop` - drag `Cards` of the deck with corresponding ID to the top on initiation of a drag
       * `d<deckid>randomizeangles` - have the orientation of a `Card` from the deck with corresponding ID be randomized by a few degrees on termination of a drag
+      * `d<deckid>cardturnangleinc<intValue>` - use this option to set a specific angle increment for turning `Cards` from a specific `Deck`
       * `notes` - allow players to open a window where notes can be made; this can be useful for Pen&Paper games where character attributes or inventory may be noted; alternatively, the game master can use this to make player-specific notes
       * `yahtzee` - adds a 'Roll All' option the context menu of players; selecting this will perform a `Roll` on every die available
       
