@@ -167,6 +167,15 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    
 ### Game Settings & Actions
 
+* **Play Sound**
+   The GM has multiple options to play sound from files (those need to be located in the `sound/` directory) or as text-to-speech (TTS) message for all players.
+   * **Play Sound** Issues the singular playback of the selected sound file for all players.
+   * **Play Looping Sound** Issues the repeated playback of the selected sound file for all players (ambient sounds/music).
+   * **Stop Sound** Stop playback of all sounds currently playing for players.
+   * **Queue TTS** Send a TTS message to all players.
+   * **Volume** Use the slider input to adjust playback volume of sounds and the TTS system. For players this slider is available only if the key `a` is pressed while opening the context menu.
+   * **Select TTS Voice** Select your preferred TTS voice/language from a list of available voices. For players this slider is available only if the key `a` is pressed while opening the context menu.
+
 * **Game Options**
    In this submenu it is possible to add arbitrary (previously implemented) modifyers to the game. An example is the option to have `Cards` in a certain deck be dragged to the top layer of the deck on the initiation of a `Card`-drag (this is recommended for most basic card games). Suppose you want to play a game of cards where the `Card` that has been moved last should be raised to the top of the entire deck. For a deck ID of 2 a game option `d2dragtotop` has to be added to the game. For the implementation of a custom rule `<keyword>` you can simply use the condition 
    ```
@@ -209,6 +218,9 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    
 * **Force Discard All**
    Force all clients to discard all `Cards` that are currently visible due to being drawn onto their hand.
+
+* **Copy Server Address**
+   Try to copy the server's public address (ip + port) to the clipboard.
 
 * **Save/Load**
    `Save` current state of the game to or `Load` a previous state of a game from an XML-file. On issuing a `Save` the server writes a savestate to the directory `savestates/` and allows the game master to also save this file on their machine. 'Load' requires the game master to select a suitable savestate from their local machine. Note that loading a savestate into a game where game elements exist already causes the elements from the savestate to be added to game additionally (they will not be replaced or deleted).

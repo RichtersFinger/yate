@@ -31,6 +31,7 @@ var playersloggedin = [];
 var playernotes = {};
 
 const port = 8080;
+var serverip = 0;
 server.listen(port, function(){
 	//npm install external-ip
 	const getIP = require('external-ip')();
@@ -39,8 +40,9 @@ server.listen(port, function(){
 	        // every service in the list has failed
 	        throw err;
 	    }
-	    console.log('Listening on local port', 8080);
-	    console.log('Copy-able adress: ' + ip + ":" + 8080);
+	    serverip = ip;
+	    console.log('Listening on local port', port);
+	    console.log('Copy-able address: ' + ip + ":" + port);
 	});
 	
 	
@@ -150,6 +152,7 @@ welcome.on('connection', function (socket) {
 						for (var someplayer in playernotes) {
 							socket.emit('updateplayernotes', parseInt(someplayer), playernotes[someplayer]);
 						}
+						socket.emit('serverip', serverip + ":" + port);
 					} else {
 						if (playernotes[userplayerId]) socket.emit('updateplayernotes', userplayerId, playernotes[userplayerId]);
 					}
