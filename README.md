@@ -237,7 +237,6 @@ Feel free to ask for help on implementation of modifications, suggest features, 
 Please refer to me via [mail](mailto:mail.yateofficial@gmail.com).
 
 Next on the list of features/changes to be implemented:
-* **Copy**: Include copy functionality for more game elements (only `Tokens`).
 * **Chat**: Minimal text chat window. 
 * **Help**: Include in-game information regarding controls.
 * **Cleanup**: Due to the grown nature of yate, it is a (for now persistent) goal to clean up the code base and unify functionalities.
