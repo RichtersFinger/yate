@@ -34,7 +34,7 @@ Also have a look at the [YouTube channel](https://www.youtube.com/channel/UC_QIo
    ```console
    $ node index.js
    ```
-   in the command prompt/console. If no errors occured, the command prompt/console message shows your public IP-address and the local port on which the server is listening in the format XXX.XXX.XXX.XXX:8080 . Paste this address (or simply localhost:8080 if you are on the same machine) into your browser address bar and connect to the server.
+   in the command prompt/console. If no errors occured, the command prompt/console message shows your public IP-address and the local port on which the server is listening in the format XXX.XXX.XXX.XXX:8080 . Paste this address (or simply localhost:8080 if you are on the same machine) into your browser address bar and connect to the server. You can change the local port in the file `index.js`.
 5. In order to give other people access to your server, you have to configure your router to forward the port accordingly. Other players can then join your game using the IP-address from above. If you want to use a different local port, simply edit the file `index.js`.
 6. Prepare a list of players by simply editing the existing file `players.dat` with a text editor. The first line of that file is referring to the game master. Note, that this game master will be the only „player" having full control over game elements. You can then add the names of players for your game line by line. If you prefer to have other players to verify themselves, you can add a required passphrase separated by a tabulator behind the player name.
 
