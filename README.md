@@ -124,6 +124,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
 	* **Collect** - collect all selected `Cards` and position them in the same location as the `Card` for which the context menu was opened
 	* **Arrange** - collect all selected `Cards` and arrange them with a small relative displacement
 	* **Shuffle** - shuffle the selected stack of `Cards`
+	* **Shuffle Angle** - shuffle the angle of the selected stack of `Cards`
 	* **Prepare** - perform a forced discard, face down, collection, and shuffle action on the selected deck
 	* **Grab Top N** - reduce the current selection of `Cards` to the top N `Cards`; N is always the last input from **Grab Top ..**
 	* **Grab Top ..** - you are prompted to enter a number; reduce the current selection of `Cards` to the entered number of `Cards`
@@ -131,9 +132,14 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    Some of the configurable settings for this element can be changed for the selected `Card`, the selected stack of `Cards`, and the entire deck of `Cards`; those options are presented in the corresponding submenus:
    * **Moving Rights** - controls who has permission to drag this element/these elements
    * **Viewing Rights** - controls who has the permission to view face down `Cards` or draw `Cards` to their hand
-   * **Change Scale** - change the scale the selected `Cards` are displayed in
-   * **Border Color** - toggle between transparent and white border color
-   * **Set Deck ID** - the layering of `Cards` from different decks of `Cards` is organized in such a way that all `Cards` from a deck with larger ID are always on top of `Cards` from decks with smaller IDs; use this setting to control what deck of `Cards` is on top of which deck
+   * **Details** 
+	   * **Change Scale** - change the scale the selected `Cards` are displayed in
+	   * **Border Color** - toggle between transparent and white border color
+	   * **Highlight Color** - toggle between transparent and red highlight color (possibly useful for puzzles, where the orientation should not be revealed)
+	   * **Drag to Top** - toggle whether `Cards` of this deck will be dragged to the top on initiation of a drag
+	   * **Randomize Angles** - toggle whether the orientation of a `Card` from this deck will be randomized by a few degrees on termination of a drag
+	   * **Angle Increment** - set a specific angle increment for turning `Cards` from this deck
+	   * **Set Deck ID** - the layering of `Cards` from different decks of `Cards` is organized in such a way that all `Cards` from a deck with larger ID are always on top of `Cards` from decks with smaller IDs; use this setting to control what deck of `Cards` is on top of which deck
    * **Delete** - remove the selected deck from the game
 * **Lottery Element**
    The `Lottery` element can have very different uses depending on the kind of game. It may serve as an indicator for who's turn it currently is, as a literal lottery enabling to pick randomly from a list of words, or even an emote by using the TTS support. Selecting `Set Options` in a `Lottery`'s context menu prompts the game master to enter a list of values separated by line breaks, commas are automatically exchanged by line breaks. The game master is also able to initialize the `Lottery` by specifying a current option inside the `Set Option` submenu. The next entry of the `Lottery` is picked by double clicking with the `Left Mouse Button` or via the `Lottery`'s context menu's option `Pick Next`.
@@ -168,7 +174,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
 ### Game Settings & Actions
 
 * **Play Sound**
-   The GM has multiple options to play sound from files (those need to be located in the `sound/` directory) or as text-to-speech (TTS) message for all players.
+   The game master has multiple options to play sound from files (those need to be located in the `sound/` directory) or as text-to-speech (TTS) message for all players.
    * **Play Sound** Issues the singular playback of the selected sound file for all players.
    * **Play Looping Sound** Issues the repeated playback of the selected sound file for all players (ambient sounds/music).
    * **Stop Sound** Stop playback of all sounds currently playing for players.
@@ -187,9 +193,9 @@ Aside from the `Die` elements that are only visible for their creator, only the 
       As described above this is an easy way to implement additional custom rules for yate that are kept track of by the server. You can add multiple options at once separated by a space. 
       
       Currently the following game options are implemented:
-      * `d<deckid>dragtotop` - drag `Cards` of the deck with corresponding ID to the top on initiation of a drag
-      * `d<deckid>randomizeangles` - have the orientation of a `Card` from the deck with corresponding ID be randomized by a few degrees on termination of a drag
-      * `d<deckid>cardturnangleinc<intValue>` - use this option to set a specific angle increment for turning `Cards` from a specific `Deck`
+      * `d<deckid>dragtotop` - drag `Cards` of the deck with corresponding ID to the top on initiation of a drag (see shortcut in `Deck` → `Details`)
+      * `d<deckid>randomizeangles` - have the orientation of a `Card` from the deck with corresponding ID be randomized by a few degrees on termination of a drag (see shortcut in `Deck` → `Details`)
+      * `d<deckid>cardturnangleinc<intValue>` - use this option to set a specific angle increment for turning `Cards` from a specific `Deck` (see shortcut in `Deck` → `Details`)
       * `notes` - allow players to open a window where notes can be made; this can be useful for Pen&Paper games where character attributes or inventory may be noted; alternatively, the game master can use this to make player-specific notes
       * `yahtzee` - adds a 'Roll All' option the context menu of players; selecting this will perform a `Roll` on every die available
       

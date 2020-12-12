@@ -537,6 +537,18 @@ welcome.on('connection', function (socket) {
 				}
 				socket.emit('changedeckid', oldid, newid);
 				socket.broadcast.emit('changedeckid', oldid, newid);
+				for (var i = 0; i < gameoptions.length; i++) {
+					if (gameoptions[i].includes("d" + oldid + "cardturnangleinc")) { // expected format d<deckid>cardturnangleinc<intValue>
+						var optioninfo = gameoptions[i].split("cardturnangleinc");
+						gameoptions[i] = "d" + newid + "cardturnangleinc" + optioninfo[1];
+					} else if (gameoptions[i] === "d" + oldid + "dragtotop") {
+						gameoptions[i] = "d" + newid + "dragtotop";
+					} else if (gameoptions[i] === "d" + oldid + "randomizeangles") {
+						gameoptions[i] = "d" + newid + "randomizeangles";
+					}
+				}
+				socket.emit('gameoptions_update', gameoptions);
+				socket.broadcast.emit('gameoptions_update', gameoptions);
 			}
 		}
 	});
@@ -707,9 +719,33 @@ welcome.on('connection', function (socket) {
 			socket.broadcast.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
 		}
 	});
+	socket.on('reqshuffleangle', function (cardlist, angleinc) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		var shufflelist = [];
+		for (var currentdeck in serverdecks) {
+			for (var currentcard in serverdecks[currentdeck]) {
+				if (serverdecks[currentdeck][currentcard].owner.includes(userplayerId)) {
+					if (cardlist.includes(serverdecks[currentdeck][currentcard].deckid + "." + serverdecks[currentdeck][currentcard].cardid)) {
+						shufflelist.push(serverdecks[currentdeck][currentcard]);
+						if (shufflelist.length === cardlist.length) break;
+					}
+				}
+			}
+		}
+		console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards angles.');
+		for (var i = 0; i < shufflelist.length; i++) {
+			shufflelist[i].angle = Math.floor(360.0/angleinc * random()) * angleinc;
+			shufflelist[i].timestamp += 1; 
+			socket.emit('updatecardposition', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].x, shufflelist[i].y, shufflelist[i].angle, shufflelist[i].faceup, shufflelist[i].timestamp);
+			socket.broadcast.emit('updatecardposition', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].x, shufflelist[i].y, shufflelist[i].angle, shufflelist[i].faceup, shufflelist[i].timestamp);
+		}
+	});
 	socket.on('requestrestorecard', function (somedeckid, somecardid) {
 		if (serverdecks[somedeckid]) {
-			if (serverdecks[somedeckid][somecardid]) socket.emit('updatecardframe', serverdecks[somedeckid][somecardid]);
+			if (serverdecks[somedeckid][somecardid]) socket.emit('updatecard', serverdecks[somedeckid][somecardid]);
 		}	
 	});
 	socket.on('pushcanvas', function (somecanvas) {
