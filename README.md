@@ -7,7 +7,9 @@ Originally, yate was intended as an engine solely for playing Pen&Paper games.
 However, yate has since grown to support many more game elements (like cards or lotteries) needed up to the point where most games can be played out-of-the-box.
 Its advantage compared to other board game simulations is the compatibility since only a modern browser is required to play.
 Simply use a search engine to find an image of your favourite board game and/or other materials needed and start playing (see for example the [yate vanilla card deck](https://drive.google.com/drive/folders/1ldPSZmPTsI8vQOFMBe-Gam9nXgMdhJY7)).
-Also have a look at the [YouTube channel](https://www.youtube.com/channel/UC_QIouG5f1K7kbNoxriW3LA) for a soon to be published trailer and examples for the game management.
+Also have a look at the [YouTube channel](https://www.youtube.com/channel/UC_QIouG5f1K7kbNoxriW3LA) for a [trailer](https://youtu.be/Tz774QcYZ0E) and [demos](https://www.youtube.com/playlist?list=PL_T05W_uwBK1Fsq8mLjbVHRR-kKcc4KXz) for the game management.
+
+[<p align="center"><img src="http://img.youtube.com/vi/Tz774QcYZ0E/0.jpg"></p>](https://youtu.be/Tz774QcYZ0E)
 
 ## Contents
 
