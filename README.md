@@ -23,24 +23,29 @@ Also have a look at the [YouTube channel](https://www.youtube.com/channel/UC_QIo
 * [License](#license)
 
 ## Setup
+The host of the game, i.e. the person running the server (this does not need to be the game master), has to install Node.js (the server software) and a few small components. Here is a detailed description of what the host has to do to set up yate:
 
 1. Install `Node.js` with `npm` from [here](https://nodejs.org/).
 
-   (Optional: I recommend to add the binary directory of Node.js to your path variable.)
+   (Optional: I recommend to add the binary directory of Node.js to your path variable<sup>a</sup>.)
 2. Download the contents of this repository and move them into a clean directory.
-3. Open a command prompt/console in the newly created yate directory. Execute `npm` to install the components `express`, `socket.io`, and `external-ip` using
+3. Open a command prompt/console in the newly created yate directory<sup>b</sup>. Execute `npm` to install the components `express`, `socket.io`, and `external-ip` using the command
    ```console
-   $ npm install express socket.io external-ip
+   $ <path-tp-npm>/npm install express socket.io external-ip
    ```
 4. Test the server by issuing 
    ```console
    $ node index.js
    ```
    in the command prompt/console. If no errors occured, the command prompt/console message shows your public IP-address and the local port on which the server is listening in the format XXX.XXX.XXX.XXX:8080 . Paste this address (or simply localhost:8080 if you are on the same machine) into your browser address bar and connect to the server. You can change the local port in the file `index.js`.
-5. In order to give other people access to your server, you have to configure your router to forward the port accordingly. Other players can then join your game using the IP-address from above. If you want to use a different local port, simply edit the file `index.js`.
-6. Prepare a list of players by simply editing the existing file `players.dat` with a text editor. The first line of that file is referring to the game master. Note, that this game master will be the only „player" having full control over game elements. You can then add the names of players for your game line by line. If you prefer to have other players to verify themselves, you can add a required passphrase separated by a tabulator behind the player name.
+5. In order to give other people access to your server, you most-likely have to configure your router to forward/map the port accordingly (TCP). Other players can then join your game using the IP-address from above. If you want to use a different local port, simply edit the line `const port = 8080;` in `index.js`.
 
-See the [List of Features](#list-of-features) for more information on how to prepare a simple game.
+6. Prepare a list of players (i.e. names of all players) by simply editing the existing file `players.dat` with a text editor. The first line of that file is referring to the game master. Note, that this game master will be the only „player" having full control over game elements. You can then add the names of players for your game line by line. If you prefer to have other players to verify themselves, you can add a required passphrase separated by a tabulator behind the player names.
+
+See the [List of Features](#list-of-features) and [demos](https://www.youtube.com/playlist?list=PL_T05W_uwBK1Fsq8mLjbVHRR-kKcc4KXz) for more information on how to prepare a simple game.
+
+<sup>a</sup> Example for Windows [here](https://stackoverflow.com/a/9546345).
+<sup>b</sup> Example for Windows [here](https://stackoverflow.com/a/60914).
 
 ## List of Features
 
