@@ -31,11 +31,11 @@ The host of the game, i.e. the person running the server (this does not need to 
 2. Download the contents of this repository and move them into a clean directory.
 3. Open a command prompt/console in the newly created yate directory<sup>b</sup>. Execute `npm` to install the components `express`, `socket.io`, and `external-ip` using the command
    ```console
-   $ <path-tp-npm>/npm install express socket.io external-ip
+   $ <path-to-npm>/npm install express socket.io external-ip
    ```
 4. Test the server by issuing 
    ```console
-   $ node index.js
+   $ <path-to-node>/node index.js
    ```
    in the command prompt/console. If no errors occured, the command prompt/console message shows your public IP-address and the local port on which the server is listening in the format XXX.XXX.XXX.XXX:8080 . Paste this address (or simply localhost:8080 if you are on the same machine) into your browser address bar and connect to the server. You can change the local port in the file `index.js`.
 5. In order to give other people access to your server, you most-likely have to configure your router to forward/map the port accordingly (TCP). Other players can then join your game using the IP-address from above. If you want to use a different local port, simply edit the line `const port = 8080;` in `index.js`.
