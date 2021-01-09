@@ -8,7 +8,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.5";
+const version = "1.6";
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/game.html');
@@ -44,12 +44,12 @@ server.listen(port, function(){
 	    console.log('Listening on local port', port);
 	    console.log('Copy-able address: ' + ip + ":" + port);
 	});
-	
-	
+
+
 	var interval = 5 * 60 * 1000;
 	setTimeout(function(){backups(interval);}, interval);
-	
-	
+
+
 	var contents = fs.readFileSync('players.dat', 'utf8').split(/\r?\n/);
 	for (var i = 0; i < contents.length; i++) {
 		var current = contents[i].split('\t');
@@ -64,18 +64,19 @@ server.listen(port, function(){
 		playernotes[i] = "";
 	}
 	console.log('List of players:', players);
-	
+
 	var currentdate = new Date();
 	initialtime = currentdate.getTime();
 	currenttime = initialtime;
 	for (var i = 0; i < players.length; i++) {
 		lasttimes[i] = currenttime;
 	}
-	
+
 	rngseed(currenttime);
 });
 
-const ContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9};
+const serverContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9, "Soundboard":10};
+const serverSoundboardTypes = {"file":1, "TTS":2};
 
 var playingsound = false, lastsound = '', lastsoundlooping = false;
 var showeventlog = false;
@@ -87,6 +88,7 @@ var serverdecks = {};
 var servercanvasframes = {};
 var serverlotteryframes = {};
 var serverpublicdieframes = {};
+var serversoundboards = {};
 
 var gameoptions = [];
 
@@ -105,15 +107,15 @@ var resourcelist = function(dir, done) {
       file = path.resolve(dir, file);
       fs.stat(file, function(err, stat) {
         if (stat && stat.isDirectory()) {
-	resourcelist(file, function(err, res) {
-	  results = results.concat(res);
-	  next();
-	});
+					resourcelist(file, function(err, res) {
+					  results = results.concat(res);
+					  next();
+					});
         } else {
-	if (!file.includes("_server_")) {
-		results.push(file.substring(__dirname.length+1).replace(/\\/g, "/"));
-	}
-	next();
+					if (!file.includes("_server_")) {
+						results.push(file.substring(__dirname.length+1).replace(/\\/g, "/"));
+					}
+					next();
         }
       });
     })();
@@ -156,7 +158,7 @@ welcome.on('connection', function (socket) {
 					} else {
 						if (playernotes[userplayerId]) socket.emit('updateplayernotes', userplayerId, playernotes[userplayerId]);
 					}
-					
+
 					if (userplayerId === 0) {
 						resourcelist('img', function(err, results) {
 						  if (err) throw err;
@@ -179,7 +181,7 @@ welcome.on('connection', function (socket) {
 					console.log("Failed login attempt for player " + players[playerid] + ".");
 					socket.emit('failedlogin', "Wrong Password.");
 				}
-				
+
 			}
 		} else {
 			socket.emit('failedlogin', "Chosen character does not exist. This should not happen.");
@@ -325,13 +327,13 @@ welcome.on('connection', function (socket) {
 		if (someplayer === userplayerId || userplayerId === 0) {
 			if (typeof somenotes == "string") {
 				playernotes[someplayer] = somenotes;
-				
+
 				socket.emit('updateplayernotes', someplayer, somenotes);
 				// broadcast.to does not send to issuing client
 				socket.broadcast.to(playersuserId[0]).emit('updateplayernotes', someplayer, somenotes);
 				socket.broadcast.to(playersuserId[someplayer]).emit('updateplayernotes', someplayer, somenotes);
 			}
-		} 
+		}
 	});
 	socket.on('updateimageposition', function (someid, newx, newy, newtimestamp) {
 		if (userplayerId === -1 && !alertednotloggedin) {
@@ -343,7 +345,7 @@ welcome.on('connection', function (socket) {
 				if (serverimageframes[someid].timestamp < newtimestamp) {
 					serverimageframes[someid].x = newx;
 					serverimageframes[someid].y = newy;
-					
+
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					serverimageframes[someid].timestamp = newtimestamp;
@@ -353,7 +355,7 @@ welcome.on('connection', function (socket) {
 						socket.broadcast.emit('updateimageframeposition', someid, newx, newy, newtimestamp);
 					}
 				}
-			} 
+			}
 		}
 	});
 	socket.on('pushdeleteimage', function (someid) {
@@ -428,7 +430,7 @@ welcome.on('connection', function (socket) {
 				if (servertokenframes[someid].timestamp < newtimestamp) {
 					servertokenframes[someid].x = newx;
 					servertokenframes[someid].y = newy;
-					
+
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					servertokenframes[someid].timestamp = newtimestamp;
@@ -438,7 +440,7 @@ welcome.on('connection', function (socket) {
 						socket.broadcast.emit('updatetokenframeposition', someid, newx, newy, newtimestamp);
 					}
 				}
-			} 
+			}
 		}
 	});
 	socket.on('pushdeletetoken', function (someid) {
@@ -507,7 +509,7 @@ welcome.on('connection', function (socket) {
 		if (userplayerId === 0) {
 			if (serverdecks[somedeckid]) {
 				delete serverdecks[somedeckid];
-			}			
+			}
 		}
 		socket.emit('deletedeck', somedeckid);
 		socket.broadcast.emit('deletedeck', somedeckid);
@@ -565,7 +567,7 @@ welcome.on('connection', function (socket) {
 						serverdecks[somedeckid][somecardid].y = newy;
 						serverdecks[somedeckid][somecardid].angle = newangle;
 						serverdecks[somedeckid][somecardid].faceup = newfaceup;
-						
+
 						var currentdate = new Date();
 						currenttime = currentdate.getTime();
 						serverdecks[somedeckid][somecardid].timestamp = newtimestamp;
@@ -576,7 +578,7 @@ welcome.on('connection', function (socket) {
 							socket.broadcast.emit('updatecardposition', somedeckid, somecardid, newx, newy, newangle, newfaceup, newtimestamp);
 					//	}
 					}
-				} 
+				}
 			}
 		}
 	});
@@ -606,7 +608,7 @@ welcome.on('connection', function (socket) {
 						socket.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
 						socket.broadcast.emit('changecardzIndex', somedeckid, serverdecks[somedeckid][somecardid].cardid, serverdecks[somedeckid][somecardid].zIndex, newtimestamp);
 					}
-				} 
+				}
 			}
 		}
 	});
@@ -670,7 +672,7 @@ welcome.on('connection', function (socket) {
 			if (_cardlists[cardlist][0]) minzrest = _cardlists[cardlist][0].zIndex;
 			var minz = Math.min(cardlists[cardlist][0].zIndex, minzrest);
 			var maxz = minz + Object.keys(serverdecks[cardlists[cardlist][0].deckid]).length - 1;
-			
+
 			for (var i = 0; i < cardlists[cardlist].length; i++) {
 				if (cardlists[cardlist][i].zIndex !== maxz - cardlists[cardlist].length + 1 + i) {
 					cardlists[cardlist][i].timestamp = newtimestamp;
@@ -714,7 +716,7 @@ welcome.on('connection', function (socket) {
 			shufflelist[partner].zIndex = tempcardzIndex;
 		}
 		for (var i = 0; i < shufflelist.length; i++) {
-			shufflelist[i].timestamp += 1; 
+			shufflelist[i].timestamp += 1;
 			socket.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
 			socket.broadcast.emit('changecardzIndex', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].zIndex, shufflelist[i].timestamp);
 		}
@@ -738,7 +740,7 @@ welcome.on('connection', function (socket) {
 		console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards angles.');
 		for (var i = 0; i < shufflelist.length; i++) {
 			shufflelist[i].angle = Math.floor(360.0/angleinc * random()) * angleinc;
-			shufflelist[i].timestamp += 1; 
+			shufflelist[i].timestamp += 1;
 			socket.emit('updatecardposition', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].x, shufflelist[i].y, shufflelist[i].angle, shufflelist[i].faceup, shufflelist[i].timestamp);
 			socket.broadcast.emit('updatecardposition', shufflelist[i].deckid, shufflelist[i].cardid, shufflelist[i].x, shufflelist[i].y, shufflelist[i].angle, shufflelist[i].faceup, shufflelist[i].timestamp);
 		}
@@ -746,7 +748,7 @@ welcome.on('connection', function (socket) {
 	socket.on('requestrestorecard', function (somedeckid, somecardid) {
 		if (serverdecks[somedeckid]) {
 			if (serverdecks[somedeckid][somecardid]) socket.emit('updatecard', serverdecks[somedeckid][somecardid]);
-		}	
+		}
 	});
 	socket.on('pushcanvas', function (somecanvas) {
 		if (userplayerId === -1 && !alertednotloggedin) {
@@ -785,11 +787,11 @@ welcome.on('connection', function (socket) {
 				if (servercanvasframes[someid].timestamp < newtimestamp) {
 					servercanvasframes[someid].content = someJSON;
 					servercanvasframes[someid].timestamp = newtimestamp;
-					
+
 					socket.emit('updatecanvascontent', someid, someJSON, newtimestamp);
 					socket.broadcast.emit('updatecanvascontent', someid, someJSON, newtimestamp);
 				}
-			} 
+			}
 		}
 	});
 	socket.on('updatecanvasposition', function (someid, newx, newy, newtimestamp) {
@@ -802,7 +804,7 @@ welcome.on('connection', function (socket) {
 				if (servercanvasframes[someid].timestamp < newtimestamp) {
 					servercanvasframes[someid].x = newx;
 					servercanvasframes[someid].y = newy;
-					
+
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					servercanvasframes[someid].timestamp = newtimestamp;
@@ -812,7 +814,7 @@ welcome.on('connection', function (socket) {
 						socket.broadcast.emit('updatecanvasframeposition', someid, newx, newy, newtimestamp);
 					}
 				}
-			} 
+			}
 		}
 	});
 	socket.on('requestrestorecanvas', function (someid) {
@@ -852,7 +854,7 @@ welcome.on('connection', function (socket) {
 					serverlotteryframes[someid].x = newx;
 					serverlotteryframes[someid].y = newy;
 					serverlotteryframes[someid].currentindex = newindex;
-					
+
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					serverlotteryframes[someid].timestamp = newtimestamp;
@@ -862,7 +864,7 @@ welcome.on('connection', function (socket) {
 						socket.broadcast.emit('updatelotteryframeposition', someid, newx, newy, newindex, newtimestamp);
 					}
 				}
-			} 
+			}
 		}
 	});
 	socket.on('pushdeletelottery', function (someid) {
@@ -902,11 +904,11 @@ welcome.on('connection', function (socket) {
 					if (userplayerId !== 0 && serverlotteryframes[someid].viewingrights.includes(userplayerId)) socket.emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
 				}
 				if (serverlotteryframes[someid].publicresult) {
-					
+
 					// send info to owner
 					if (!serverlotteryframes[someid].isturnindicator)
 						socket.emit('printevent', 'You picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
-				
+
 					if (showeventlog) {
 						var someresult = serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex];
 						if (serverlotteryframes[someid].isturnindicator) {
@@ -916,7 +918,7 @@ welcome.on('connection', function (socket) {
 							} else {
 								socket.emit('printevent', 'Next: ' + someresult + "'s turn.");
 								socket.broadcast.emit('printevent', 'Next: ' + someresult + "'s turn.");
-							}	
+							}
 						} else {
 							socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
 							for (var i = 1; i < players.length; i++) {
@@ -961,7 +963,7 @@ welcome.on('connection', function (socket) {
 				if (serverpublicdieframes[someid].timestamp < newtimestamp) {
 					serverpublicdieframes[someid].x = newx;
 					serverpublicdieframes[someid].y = newy;
-					
+
 					var currentdate = new Date();
 					currenttime = currentdate.getTime();
 					serverpublicdieframes[someid].timestamp = newtimestamp;
@@ -971,7 +973,7 @@ welcome.on('connection', function (socket) {
 						socket.broadcast.emit('updatepublicdieframeposition', someid, newx, newy, newtimestamp);
 					}
 				}
-			} 
+			}
 		}
 	});
 	socket.on('pushdeletepublicdie', function (someid) {
@@ -995,7 +997,7 @@ welcome.on('connection', function (socket) {
 				if (serverpublicdieframes[someid].timestamp < newtimestamp) {
 					serverpublicdieframes[someid].timestamp = newtimestamp;
 					serverpublicdieframes[someid].value = newvalue;
-					
+
 					var dieresult = serverpublicdieframes[someid].value;
 					socket.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
 					socket.broadcast.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
@@ -1014,14 +1016,14 @@ welcome.on('connection', function (socket) {
 					serverpublicdieframes[someid].isrolling = false;
 					serverpublicdieframes[someid].timestamp = newtimestamp;
 					serverpublicdieframes[someid].value = Math.floor(1 + serverpublicdieframes[someid].maxvalue * random());
-					
+
 					var dieresult = serverpublicdieframes[someid].value;
 					socket.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
 					socket.broadcast.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
 					console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
 					if (gameoptions.includes('hugo')) {
 						if (serverpublicdieframes[someid].maxvalue == 6 && dieresult === 6) dieresult = "hugo";
-					} 
+					}
 					socket.emit('printevent', 'You rolled a ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
 					socket.broadcast.emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
 				//}
@@ -1040,7 +1042,7 @@ welcome.on('connection', function (socket) {
 				socket.broadcast.emit('letpublicdieanimate', someid);
 			}
 		}
-		
+
 	});
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
@@ -1048,8 +1050,8 @@ welcome.on('connection', function (socket) {
 		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ').');
 		if (gameoptions.includes('hugo')) {
 			if (somemaxvalue == 6 && dieresult === 6) dieresult = "hugo";
-		} 
-		if (showeventlog) 
+		}
+		if (showeventlog)
 			socket.broadcast.emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
 		else {
 			socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
@@ -1061,11 +1063,72 @@ welcome.on('connection', function (socket) {
 		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ') for token ' + somename + '.');
 		if (gameoptions.includes('hugo')) {
 			if (somemaxvalue == 6 && dieresult === 6) dieresult = "hugo";
-		} 
-		if (showeventlog) 
+		}
+		if (showeventlog)
 			socket.broadcast.emit('printevent', somename + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ').');
 		else {
 			socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + somemaxvalue + ') for token ' + somename + '.');
+		}
+	});
+	socket.on('pushsoundboard', function (somesoundboard) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serversoundboards[somesoundboard.id]) {
+				console.log("GM updated soundboard " + somesoundboard.id + ".");
+			} else {
+				console.log("GM pushed new soundboard " + somesoundboard.id + ".");
+			}
+			serversoundboards[somesoundboard.id] = somesoundboard;
+			socket.emit('updatesoundboard', somesoundboard);
+			socket.broadcast.emit('updatesoundboard', somesoundboard);
+		}
+	});
+	socket.on('restoresoundboard', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serversoundboards[someid]) {
+				socket.emit('updatesoundboard', serversoundboards[someid]);
+			}
+		}
+	});
+	socket.on('pushdeletesoundboard', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serversoundboards[someid]) delete serversoundboards[someid];
+			socket.emit('deletesoundboard', someid);
+			socket.broadcast.emit('deletesoundboard', someid);
+		}
+	});
+	socket.on('requestsoundboardsound', function (someid, soundid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (serversoundboards[someid]) {
+			if (serversoundboards[someid].owner.includes(userplayerId)) {
+				if (serversoundboards[someid].labels[soundid]) {
+					if (serversoundboards[someid].soundtypes[soundid] === serverSoundboardTypes.TTS) {
+						socket.emit('queueTTS', serversoundboards[someid].filepaths[soundid]);
+						socket.broadcast.emit('queueTTS', serversoundboards[someid].filepaths[soundid]);
+					} else if (serversoundboards[someid].soundtypes[soundid] === serverSoundboardTypes.file) {
+						socket.emit('playsound', serversoundboards[someid].filepaths[soundid], false);
+						socket.broadcast.emit('playsound', serversoundboards[someid].filepaths[soundid], false);
+					}
+				} else {
+					socket.emit('alertmsg', "Unknown entry - try push.");
+				}
+			}
+		} else {
+			socket.emit('alertmsg', "Unknown soundboard - try push.");
 		}
 	});
 	socket.on('requestplaysound', function (somesound, looping) {
@@ -1105,13 +1168,13 @@ welcome.on('connection', function (socket) {
 			socket.broadcast.emit('stopsound');
 		}
 	});
-	
+
 	sendservertime(socket);
-	
+
 	if (camera0set) socket.emit('camera_apply', camerax, cameray, camerazoom);
 	// register client + send login options
 	socket.emit('loginoptions', players, playersloggedin);
-	
+
 	for (var current in serverimageframes) {
 		socket.emit('updateimageframe', serverimageframes[current]);
 	}
@@ -1132,6 +1195,9 @@ welcome.on('connection', function (socket) {
 	for (var current in serverpublicdieframes) {
 		socket.emit('updatepublicdieframe', serverpublicdieframes[current]);
 	}
+	for (var current in serversoundboards) {
+		socket.emit('updatesoundboard', serversoundboards[current]);
+	}
 	socket.emit('gameoptions_update', gameoptions);
 	console.log("new client, sent login options/game data");
 });
@@ -1148,15 +1214,15 @@ function backups(interval) {
 function xmlsavestate(filename) {
 	var collecteddata = "<xml>\n"
 	collecteddata += "<date>" + new Date() + "</date>\n<version>" + version + "</version>\n";
-	
+
 	collecteddata += "<gameoptions>" + gameoptions.join(',') + "</gameoptions>\n";
-	
+
 	for (var currentplayernote in playernotes) {
 		collecteddata += "<playernote" + currentplayernote + ">\n";
 		collecteddata += "\t" + playernotes[currentplayernote].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "\n";
 		collecteddata += "</playernote" + currentplayernote + ">\n";
 	}
-	
+
 	// note: IMPORTANT: replace &, <, > by &amp;, &lt; and &gt; in strings (simply substitute this in all values)
 	for (var currentimageframe in serverimageframes) {
 		collecteddata += "<imageframe>\n";
@@ -1218,10 +1284,27 @@ function xmlsavestate(filename) {
 		}
 		collecteddata += "</dieframe>\n";
 	}
-	
+	for (var currentsb in serversoundboards) {
+		collecteddata += "<soundboard>\n";
+		for (var currentproperty in serversoundboards[currentsb]) {
+			// special treatment for label, filepaths, and types - save like array (comma separated?), index can be dropped
+			if (currentproperty === "labels" || currentproperty === "filepaths" || currentproperty === "soundtypes") continue;
+			collecteddata += "\t<" + currentproperty + ">" + ("" + serversoundboards[currentsb][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
+		}
+		// special treatment for label, filepaths, and types - save like array (comma separated?), index can be dropped
+		for (var currententry in serversoundboards[currentsb].labels) {
+			collecteddata += "\t<entry>\n";
+			collecteddata += "\t\t<labels>" + ("" + serversoundboards[currentsb].labels[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</labels>\n";
+			collecteddata += "\t\t<filepaths>" + ("" + serversoundboards[currentsb].filepaths[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</filepaths>\n";
+			collecteddata += "\t\t<soundtypes>" + ("" + serversoundboards[currentsb].soundtypes[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</soundtypes>\n";
+			collecteddata += "\t</entry>\n";
+		}
+		collecteddata += "</soundboard>\n";
+	}
+
 	collecteddata += "</xml>";
 	fs.writeFileSync(filename, collecteddata);
-	
+
 	return collecteddata;
 }
 
@@ -1233,7 +1316,7 @@ function sendservertime(socket) {
 	var currentdate = new Date();
 	var currenttime2 = currentdate.getTime();
 	socket.emit('servertime', currenttime2 - initialtime);
-	
+
 	setTimeout(function(){sendservertime(socket);}, 60000);
 }
 
