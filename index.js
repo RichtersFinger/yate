@@ -306,12 +306,12 @@ welcome.on('connection', function (socket) {
 			}
 			serverimageframes[someframe.id] = someframe;
 			if (someframe.filename.substring(0,11) == "data:image/") {
-				serverimageframes[someframe.id].filename = saveimagetofile(someframe.filename, gethash(someframe.filename));
+				serverimageframes[someframe.id].filename = saveimagetofile(someframe.filename, gethash(someframe.filename), someframe.desiredfilename);
 			}
 			serverimageframes[someframe.id]["marker"] = someMarkers;
 			for (var marker in someMarkers) {
 				if (someMarkers[marker].descfilename.substring(0,11) == "data:image/") {
-					serverimageframes[someframe.id]["marker"][marker].descfilename = saveimagetofile(someMarkers[marker].descfilename, gethash(someMarkers[marker].descfilename));
+					serverimageframes[someframe.id]["marker"][marker].descfilename = saveimagetofile(someMarkers[marker].descfilename, gethash(someMarkers[marker].descfilename), someMarkers[marker].desiredfilename);
 				}
 			}
 			serverimageframes[someframe.id]["label"] = someLabels;
@@ -411,10 +411,10 @@ welcome.on('connection', function (socket) {
 			}
 			servertokenframes[sometoken.id] = sometoken;
 			if (sometoken.filename.substring(0,11) == "data:image/") {
-				servertokenframes[sometoken.id].filename = saveimagetofile(sometoken.filename, gethash(sometoken.filename));
+				servertokenframes[sometoken.id].filename = saveimagetofile(sometoken.filename, gethash(sometoken.filename), sometoken.desiredfilename);
 			}
 			if (sometoken.descfilename.substring(0,11) == "data:image/") {
-				servertokenframes[sometoken.id].descfilename = saveimagetofile(sometoken.descfilename, gethash(sometoken.descfilename));
+				servertokenframes[sometoken.id].descfilename = saveimagetofile(sometoken.descfilename, gethash(sometoken.descfilename, sometoken.desiredfilename));
 			}
 			socket.emit('updatetokenframe', sometoken);
 			socket.broadcast.emit('updatetokenframe', sometoken);
@@ -1333,19 +1333,24 @@ function gethash(input) {
 	return Math.abs(hash).toString(16);
 }
 
-function saveimagetofile(image, filename) {
+function saveimagetofile(image, filename, desiredfilename) {
 	if (!fs.existsSync('img/_uploaded_')){
 	    fs.mkdirSync('img/_uploaded_');
 	}
 	var bitmap = Buffer.from(/base64,(.+)/.exec(image)[1], 'base64');
-	var actualfilename = "img/_uploaded_/" + filename + "." + image.substring(image.indexOf('/') + 1, image.indexOf(';base64'));
+	var actualfilename;
+	if (desiredfilename) {
+		actualfilename = "img/_uploaded_/" + desiredfilename;
+	} else {
+		actualfilename = "img/_uploaded_/" + filename + "." + image.substring(image.indexOf('/') + 1, image.indexOf(';base64'));
+	}
 	try {
 		if (fs.existsSync(actualfilename)) {
-			console.log('-> file', actualfilename, ' already exists');
+			console.log('-> file', actualfilename, ' already exists, overwriting..');
 		} else {
 			console.log('-> writing new file as ', actualfilename);
-			fs.writeFileSync(actualfilename, bitmap);
 		}
+		fs.writeFileSync(actualfilename, bitmap);
 		return actualfilename;
 	} catch(err) {
 		console.log('some error occured ', err);
