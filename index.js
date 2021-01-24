@@ -53,15 +53,17 @@ server.listen(port, function(){
 	var contents = fs.readFileSync('players.dat', 'utf8').split(/\r?\n/);
 	for (var i = 0; i < contents.length; i++) {
 		var current = contents[i].split('\t');
-		players.push(current[0]);
-		if (current[1]) {
-			passwords.push(current[1]);
-		} else {
-			passwords.push("");
+		if (current[0]) {
+			players.push(current[0]);
+			if (current[1]) {
+				passwords.push(current[1]);
+			} else {
+				passwords.push("");
+			}
+			playersuserId.push(-1);
+			playersloggedin.push(false);
+			playernotes[i] = "";
 		}
-		playersuserId.push(-1);
-		playersloggedin.push(false);
-		playernotes[i] = "";
 	}
 	console.log('List of players:', players);
 
