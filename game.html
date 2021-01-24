@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <link href='https://fonts.googleapis.com/css?family=Cinzel Decorative' rel='stylesheet'>
@@ -18,7 +18,7 @@
 
 	 <!-- canvas{border:1px solid black; background-color: white;}-->
 <style>
-	body{ background-color: white; overflow: hidden; display: block; font-family: 'Cinzel Decorative';font-size: 18px;}
+	body{ background-color: white; overflow: hidden; display: block; font-family: '';font-size: 18px;}
 	.loader {
 	  border: 8px solid #f3f3f3;
 	  border-radius: 50%;
@@ -56,6 +56,12 @@
 		      -ms-user-select: none; /* Internet Explorer/Edge */
 		          user-select: none; /* Non-prefixed version, currently
 			    supported by Chrome, Opera and Firefox */
+	}
+
+	.hyphenated {
+	  -webkit-hyphens: auto;
+	     -moz-hyphens: auto;
+	          hyphens: auto;
 	}
 
 	@keyframes spin {
@@ -156,7 +162,7 @@
 		    </div>
 	    </div>
 	    <div id="loadimagedivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
-		  <div id="loadimagediv" class="autocomplete" style="position: relative; top: 0; left: 0; width: 310px;; height: 80px; padding: 1.0%; border: 3px solid #ffffff">
+		  <div id="loadimagediv" class="autocomplete" style="position: relative; top: 0; left: 0; width: 320px;; height: 80px; padding: 1.0%; border: 3px solid #ffffff">
 		          <div id="loadimageautocompletecontainerdiv" class="autocomplete" style="position: relative; width: 100%">
 			     <input id="loadimageinput" type="text" autocomplete="off" style="position: relative; width: 90%">
 		          </div><br><br>
@@ -167,7 +173,7 @@
 		    </div>
 	    </div>
 	    <div id="loaddescriptiondivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
-		  <div id="loaddescriptiondiv" class="autocomplete" style="position: relative; top: 0; left: 0; width: 310px;; height: 80px; padding: 1.0%; border: 3px solid #ffffff">
+		  <div id="loaddescriptiondiv" class="autocomplete" style="position: relative; top: 0; left: 0; width: 320px;; height: 80px; padding: 1.0%; border: 3px solid #ffffff">
 		          <div id="loaddescriptionautocompletecontainerdiv" class="autocomplete" style="position: relative; width: 100%">
 			     <input id="loaddescriptioninput" type="text" autocomplete="off" style="position: relative; width: 90%">
 		          </div><br><br>
@@ -179,13 +185,13 @@
 	    </div>
 	    <div id="texteditdivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
 		  <div id="texteditdiv" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: absolute; top: 0; left: 0; width: 300px; padding: 1.0%; overflow: hidden; border: 3px solid #ffffff">
-		          <textarea rows="10" id="texteditinput" placeholder="Text" style="font-family:Helvetica;font-size:13px; resize: none;position: absolute; width: 275px; left: 25px"></textarea><br><br><br><br><br><br><br>
-			<button id="textedit_bapply" type="button" class="fancybutton" style="background-color: #38e038; width:100px; padding:5px 8px">Apply</button>
-			<button id="textedit_bcancel" type="button" class="fancybutton" style="background-color: #d13824; width:100px; padding:5px 8px">Cancel</button>
-		    </div>
+		      <textarea rows="10" id="texteditinput" placeholder="Text" style="font-family:Helvetica;font-size:13px; resize: none;position: absolute; width: 275px; left: 25px"></textarea><br><br><br><br><br><br><br><br>
+				<button id="textedit_bapply" type="button" class="fancybutton" style="background-color: #38e038; width:100px; padding:5px 8px">Apply</button>
+				<button id="textedit_bcancel" type="button" class="fancybutton" style="background-color: #d13824; width:100px; padding:5px 8px">Cancel</button>
+		  </div>
 	    </div>
 	    <div id="loadsounddivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
-		  <div id="loadsounddiv" class="autocomplete" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: relative; top: 0; left: 0; width: 310px; padding: 1.0%; border: 3px solid #ffffff">
+		  <div id="loadsounddiv" class="autocomplete" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: relative; top: 0; left: 0; width: 320px; padding: 1.0%; border: 3px solid #ffffff">
 		          <div id="loadsoundautocompletecontainerdiv" class="autocomplete" style="position: relative; width: 100%">
 			     <input id="loadsoundinput" type="text" autocomplete="off" style="position: relative; width: 90%">
 		          </div><br><br>

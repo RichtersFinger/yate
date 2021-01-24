@@ -216,6 +216,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
       * `d<deckid>cardturnangleinc<intValue>` - use this option to set a specific angle increment for turning `Cards` from a specific `Deck` (see shortcut in `Deck` → `Details`)
       * `notes` - allow players to open a window where notes can be made; this can be useful for Pen&Paper games where character attributes or inventory may be noted; alternatively, the game master can use this to make player-specific notes
       * `yahtzee` - adds a 'Roll All' option the context menu of players; selecting this will perform a `Roll` on every die available
+      * `fontDecorative` - change the generic font to a more decorative/Fantasy-style font
 
    * **Remove Options**
       The prompt is automatically filled with all currently set game options. You can remove multiple options at once separated by a space.
