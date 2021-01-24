@@ -1119,8 +1119,8 @@ welcome.on('connection', function (socket) {
 			if (serversoundboards[someid].owner.includes(userplayerId)) {
 				if (serversoundboards[someid].labels[soundid]) {
 					if (serversoundboards[someid].soundtypes[soundid] === serverSoundboardTypes.TTS) {
-						socket.emit('queueTTS', serversoundboards[someid].filepaths[soundid]);
-						socket.broadcast.emit('queueTTS', serversoundboards[someid].filepaths[soundid]);
+						socket.emit('queueTTS', serversoundboards[someid].filepaths[soundid], serversoundboards[someid].pitches[soundid], serversoundboards[someid].rates[soundid]);
+						socket.broadcast.emit('queueTTS', serversoundboards[someid].filepaths[soundid], serversoundboards[someid].pitches[soundid], serversoundboards[someid].rates[soundid]);
 					} else if (serversoundboards[someid].soundtypes[soundid] === serverSoundboardTypes.file) {
 						socket.emit('playsound', serversoundboards[someid].filepaths[soundid], false);
 						socket.broadcast.emit('playsound', serversoundboards[someid].filepaths[soundid], false);
@@ -1148,14 +1148,14 @@ welcome.on('connection', function (socket) {
 			socket.broadcast.emit('playsound', somesound, looping);
 		}
 	});
-	socket.on('requestqueueTTS', function (somemessage) {
+	socket.on('requestqueueTTS', function (somemessage, somepitch, somerate) {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			socket.emit('queueTTS', somemessage);
-			socket.broadcast.emit('queueTTS', somemessage);
+			socket.emit('queueTTS', somemessage, somepitch, somerate);
+			socket.broadcast.emit('queueTTS', somemessage, somepitch, somerate);
 		}
 	});
 	socket.on('requeststopsound', function () {
@@ -1289,8 +1289,8 @@ function xmlsavestate(filename) {
 	for (var currentsb in serversoundboards) {
 		collecteddata += "<soundboard>\n";
 		for (var currentproperty in serversoundboards[currentsb]) {
-			// special treatment for label, filepaths, and types - save like array (comma separated?), index can be dropped
-			if (currentproperty === "labels" || currentproperty === "filepaths" || currentproperty === "soundtypes") continue;
+			// special treatment for label, filepaths, pitches, rates, and types - save like array (comma separated?), index can be dropped
+			if (currentproperty === "labels" || currentproperty === "filepaths" || currentproperty === "pitches" || currentproperty === "rates" || currentproperty === "soundtypes") continue;
 			collecteddata += "\t<" + currentproperty + ">" + ("" + serversoundboards[currentsb][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 		}
 		// special treatment for label, filepaths, and types - save like array (comma separated?), index can be dropped
@@ -1298,6 +1298,8 @@ function xmlsavestate(filename) {
 			collecteddata += "\t<entry>\n";
 			collecteddata += "\t\t<labels>" + ("" + serversoundboards[currentsb].labels[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</labels>\n";
 			collecteddata += "\t\t<filepaths>" + ("" + serversoundboards[currentsb].filepaths[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</filepaths>\n";
+			collecteddata += "\t\t<pitches>" + ("" + serversoundboards[currentsb].pitches[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</pitches>\n";
+			collecteddata += "\t\t<rates>" + ("" + serversoundboards[currentsb].rates[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</rates>\n";
 			collecteddata += "\t\t<soundtypes>" + ("" + serversoundboards[currentsb].soundtypes[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</soundtypes>\n";
 			collecteddata += "\t</entry>\n";
 		}
