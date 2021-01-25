@@ -3,7 +3,10 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server, {
 	  pingInterval: 25000,
-	  pingTimeout: 60000
+	  pingTimeout: 60000,
+	  // > 800KB for standard maxHttpBufferSize: 1e6
+	  // > 8MB for maxHttpBufferSize: 1e7 in socket.io
+	  maxHttpBufferSize: 1e7
   });
 const path = require('path');
 const fs = require('fs');
