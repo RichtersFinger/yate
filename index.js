@@ -940,6 +940,8 @@ welcome.on('connection', function (socket) {
 					socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
 				}
 			}
+		} else {
+				socket.emit('alertmsg', "Unknown lottery - try push.");
 		}
 	});
 	socket.on('pushpublicdie', function (someframe) {
@@ -1033,6 +1035,8 @@ welcome.on('connection', function (socket) {
 					socket.broadcast.emit('printevent', players[userplayerId] + ' rolled a ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
 				//}
 			}
+		} else {
+				socket.emit('alertmsg', "Unknown die - try push.");
 		}
 	});
 	socket.on('reqpublicdiceanimation', function (someid) {
