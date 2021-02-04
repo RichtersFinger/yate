@@ -184,7 +184,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
 * **Soundboard Element**
 	The `Soundboard` element enables the game master to set up a list of sound effects or TTS-messages that can be played by clicking a single button. The corresponding context menu option is located in the `Play Sound` submenu.
 
-	In the `Soundboard` click the `Add` button to open a menu where a new `Entry` can be configured and tested. At the top it can be selected whether a `File` or a `TTS` should be played. Below a label can be specified which will appear on the `Soundboard`. For the next input depending on the category of effect either select a sound file or enter a TTS-message. Lastly, the selection/input can be previewed. If a sound file was added after the server startup, clicking on the `Update List` button updates this file to be listed in the auto completion. Double clicking the `Soundboard` label offers the game master to change the soundboard name.
+	In the `Soundboard` click the `Add` button to open a menu where a new `Entry` can be configured and tested. At the top it can be selected whether a `File` or a `TTS` should be played. Below a label can be specified which will appear on the `Soundboard`. For the next input depending on the category of effect either select a sound file or enter a TTS-message. If you are setting up a TTS message, you can also configure options for the voice pitch and rate/speed. The input for a volume multiplier can also be accessed after the creation of a `Soundboard` entry. Lastly, the selection/input can be previewed. If a sound file was added after the server startup, clicking on the `Update List` button updates this file to be listed in the auto completion. Double clicking the `Soundboard` label offers the game master to change the soundboard name. The slider in every entry enables a quick adjustment of the playback volume (changes are pushed automatically).
 
 	The configurable settings for the element are:
 	* **Owner** - controls who has permission to use the `Soundboard`
@@ -263,7 +263,10 @@ Please refer to me via [mail](mailto:mail.yateofficial@gmail.com).
 
 Next on the list of features/changes to be implemented:
 * **Thumbnails** Thumbnail preview for image selection.
-* **Change Indocator** Implement indicator showing what game elements have changed since last push.
+* **Pointer** Functionality to enable pointing on something/in some direction.
+* **Change Indicator** Implement indicator showing what game elements have changed since last push.
+* **Property Editor** Editor window to set up game element properties more comfortable.
+* **n-die** n-sided die.
 * **Chat**: Minimal text chat window.
 * **Help**: Include in-game information regarding controls.
 * **Cleanup**: Due to the grown nature of yate, it is a (for now persistent) goal to clean up the code base and unify functionalities.

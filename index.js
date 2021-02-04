@@ -1106,6 +1106,24 @@ welcome.on('connection', function (socket) {
 			}
 		}
 	});
+	socket.on('changesoundboardsoundvolume', function (someid, somesoundid, newvolume, sometimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (serversoundboards[someid]) {
+				if (serversoundboards[someid].timestamp < sometimestamp) {
+					if (serversoundboards[someid].volumemultiplier[somesoundid]) {
+						serversoundboards[someid].timestamp = sometimestamp;
+						serversoundboards[someid].volumemultiplier[somesoundid] = newvolume;
+						socket.emit('updatesoundboardsoundvolume', someid, somesoundid, newvolume, sometimestamp);
+						socket.broadcast.emit('updatesoundboardsoundvolume', someid, somesoundid, newvolume, sometimestamp);
+					}
+				}
+			}
+		}
+	});
 	socket.on('pushdeletesoundboard', function (someid) {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
@@ -1124,13 +1142,13 @@ welcome.on('connection', function (socket) {
 		}
 		if (serversoundboards[someid]) {
 			if (serversoundboards[someid].owner.includes(userplayerId)) {
-				if (serversoundboards[someid].labels[soundid]) {
+				if (serversoundboards[someid].soundtypes[soundid]) {
 					if (serversoundboards[someid].soundtypes[soundid] === serverSoundboardTypes.TTS) {
-						socket.emit('queueTTS', serversoundboards[someid].filepaths[soundid], serversoundboards[someid].pitches[soundid], serversoundboards[someid].rates[soundid]);
-						socket.broadcast.emit('queueTTS', serversoundboards[someid].filepaths[soundid], serversoundboards[someid].pitches[soundid], serversoundboards[someid].rates[soundid]);
+						socket.emit('queueTTS', serversoundboards[someid].filepaths[soundid], serversoundboards[someid].pitches[soundid], serversoundboards[someid].rates[soundid], serversoundboards[someid].volumemultiplier[soundid]);
+						socket.broadcast.emit('queueTTS', serversoundboards[someid].filepaths[soundid], serversoundboards[someid].pitches[soundid], serversoundboards[someid].rates[soundid], serversoundboards[someid].volumemultiplier[soundid]);
 					} else if (serversoundboards[someid].soundtypes[soundid] === serverSoundboardTypes.file) {
-						socket.emit('playsound', serversoundboards[someid].filepaths[soundid], false);
-						socket.broadcast.emit('playsound', serversoundboards[someid].filepaths[soundid], false);
+						socket.emit('playsound', serversoundboards[someid].filepaths[soundid], false, serversoundboards[someid].volumemultiplier[soundid]);
+						socket.broadcast.emit('playsound', serversoundboards[someid].filepaths[soundid], false, serversoundboards[someid].volumemultiplier[soundid]);
 					}
 				} else {
 					socket.emit('alertmsg', "Unknown entry - try push.");
@@ -1296,8 +1314,8 @@ function xmlsavestate(filename) {
 	for (var currentsb in serversoundboards) {
 		collecteddata += "<soundboard>\n";
 		for (var currentproperty in serversoundboards[currentsb]) {
-			// special treatment for label, filepaths, pitches, rates, and types - save like array (comma separated?), index can be dropped
-			if (currentproperty === "labels" || currentproperty === "filepaths" || currentproperty === "pitches" || currentproperty === "rates" || currentproperty === "soundtypes") continue;
+			// special treatment for label, filepaths, pitches, rates, volumemultiplier, and types - save like array (comma separated?), index can be dropped
+			if (currentproperty === "labels" || currentproperty === "filepaths" || currentproperty === "pitches" || currentproperty === "rates" || currentproperty === "soundtypes" || currentproperty === "volumemultiplier") continue;
 			collecteddata += "\t<" + currentproperty + ">" + ("" + serversoundboards[currentsb][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
 		}
 		// special treatment for label, filepaths, and types - save like array (comma separated?), index can be dropped
@@ -1307,6 +1325,7 @@ function xmlsavestate(filename) {
 			collecteddata += "\t\t<filepaths>" + ("" + serversoundboards[currentsb].filepaths[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</filepaths>\n";
 			collecteddata += "\t\t<pitches>" + ("" + serversoundboards[currentsb].pitches[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</pitches>\n";
 			collecteddata += "\t\t<rates>" + ("" + serversoundboards[currentsb].rates[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</rates>\n";
+			collecteddata += "\t\t<volumemultiplier>" + ("" + serversoundboards[currentsb].volumemultiplier[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</volumemultiplier>\n";
 			collecteddata += "\t\t<soundtypes>" + ("" + serversoundboards[currentsb].soundtypes[currententry]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</soundtypes>\n";
 			collecteddata += "\t</entry>\n";
 		}

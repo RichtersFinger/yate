@@ -216,7 +216,12 @@
           <div id="soundboardadddiv_File_autocompletediv" class="autocomplete" style="position: relative; width: 100%">
             <input id="soundboardadddiv_File_autocompleteinput" type="text" autocomplete="off" style="position: relative; width: 90%">
           </div>
-          <br>
+			 <br>
+			 <div style="margin-right:20px">
+				 <label for="soundboardadddiv_File_volumeinput" style="display: block">Volume Multiplier</label>
+				 <input id="soundboardadddiv_File_volumeinput" name="soundboardadddiv_File_volumeinputname" type="range" style="position: relative; width: 120px; display: block" min="0" max="1" step="0.05" value=0.5 oninput="this.nextElementSibling.value = this.value">
+				 <output>0.5</output>
+			 </div>
     			<button id="soundboardadddiv_File_btest" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px; margin-top: 7px">Test Effect</button>
     			<button id="soundboardadddiv_File_bupdate" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px; margin-top: 7px">Update List</button>
         </div>
@@ -240,6 +245,11 @@
 					<output>1</output>
 				</div>
 				<br>
+				<div style="margin-right:20px">
+					<label for="soundboardadddiv_TTS_volumeinput" style="display: block">Volume Multiplier</label>
+					<input id="soundboardadddiv_TTS_volumeinput" name="soundboardadddiv_TTS_volumeinputname" type="range" style="position: relative; width: 120px; display: block" min="0" max="1" step="0.05" value=0.5 oninput="this.nextElementSibling.value = this.value">
+					<output>0.5</output>
+				</div>
 				<button id="soundboardadddiv_TTS_btest" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px; margin-top: 7px">Test TTS</button>
         </div>
         <div id="soundboardadddiv_buttons" style="padding-top: 10px">
