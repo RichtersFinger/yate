@@ -59,6 +59,7 @@ See the [List of Features](#list-of-features) and [demos](https://www.youtube.co
 * **Modify**: By clicking with your `Right Mouse Button` you can open a [context menu](https://swisnl.github.io/jQuery-contextMenu/) of available actions.
 
    Game Master Controls: Aside from general settings and actions you will find a section referring to the game element clicked on. This section is initiated with a label containing the type of the game element and its internal id. There the game master can `push`, `delete` or modify settings of this game element. See below for a detailed description of all functionalities. Most elements can also be manipulated in size or regarding the element layering by holding `Shift` or `Alt`, respectively, while turning the `Mouse Wheel`.
+* **Pointer**: By holding `Space` and clicking with your `Left Mouse Button` you can place a pointer at that location visible to everyone else. This pointer is temporary and vanishes after a few seconds. The pointer color can be set by opening the context menu while holding down `a` and clicking on `Select Pointer Color`.
 
 ### Game Elements
 Aside from the `Die` elements that are only visible for their creator, only the game master can create game elements. After creation those elements are initially only a local object until either the `Push This` or the `Push All` actions from the context menu are performed. Only then the server receives the information. In general, changes that are made in the configuration of game elements will be local until pushed to the server. In some cases there will also be shown a `Restore` option to reload the current server-side settings for the given element. Selecting `Push Delete` will immediately delete the selected element from the server. All updates the server receives are passed on to all clients.
@@ -263,7 +264,6 @@ Please refer to me via [mail](mailto:mail.yateofficial@gmail.com).
 
 Next on the list of features/changes to be implemented:
 * **Thumbnails** Thumbnail preview for image selection.
-* **Pointer** Functionality to enable pointing on something/in some direction.
 * **Change Indicator** Implement indicator showing what game elements have changed since last push.
 * **Property Editor** Editor window to set up game element properties more comfortable.
 * **n-die** n-sided die.

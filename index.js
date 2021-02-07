@@ -11,7 +11,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.6";
+const version = "1.7";
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/game.html');
@@ -1193,6 +1193,15 @@ welcome.on('connection', function (socket) {
 			lastsound = '';
 			socket.emit('stopsound');
 			socket.broadcast.emit('stopsound');
+		}
+	});
+	socket.on('requestpointer', function (somex, somey, somecolor) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		} else {
+			socket.emit('makepointer', userplayerId, somex, somey, somecolor);
+			socket.broadcast.emit('makepointer', userplayerId, somex, somey, somecolor);
 		}
 	});
 
