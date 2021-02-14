@@ -58,7 +58,7 @@ See the [List of Features](#list-of-features) and [demos](https://www.youtube.co
 * **Interact**: You can drag&drop most game elements (if you are permitted to by the game master) or double click with your `Left Mouse Button` to interact (e.g. double clicking on a `Die` will initiate a dice roll, whereas a double click on a `Card` will cause this card to turn over).
 * **Modify**: By clicking with your `Right Mouse Button` you can open a [context menu](https://swisnl.github.io/jQuery-contextMenu/) of available actions.
 
-   Game Master Controls: Aside from general settings and actions you will find a section referring to the game element clicked on. This section is initiated with a label containing the type of the game element and its internal id. There the game master can `push`, `delete` or modify settings of this game element. See below for a detailed description of all functionalities. Most elements can also be manipulated in size or regarding the element layering by holding `Shift` or `Alt`, respectively, while turning the `Mouse Wheel`.
+   Game Master Controls: Aside from general settings and actions you will find a section referring to the game element clicked on. This section is initiated with a label containing the type of the game element and its internal id. There the game master can `push`, `delete` or modify settings of this game element. See below for a detailed description of all functionalities. Most elements can also be manipulated in size or regarding the element layering by holding `Shift` or `Alt`, respectively, while turning the `Mouse Wheel`. Unpushed changes are indicated by an orange flashing or the respective game element's background/border.
 * **Pointer**: By holding `Space` and clicking with your `Left Mouse Button` you can place a pointer at that location visible to everyone else. This pointer is temporary and vanishes after a few seconds. The pointer color can be set by opening the context menu while holding down `a` and clicking on `Select Pointer Color`.
 
 ### Game Elements
@@ -264,7 +264,6 @@ Please refer to me via [mail](mailto:mail.yateofficial@gmail.com).
 
 Next on the list of features/changes to be implemented:
 * **Thumbnails** Thumbnail preview for image selection.
-* **Change Indicator** Implement indicator showing what game elements have changed since last push.
 * **Property Editor** Editor window to set up game element properties more comfortable.
 * **n-die** n-sided die.
 * **Chat**: Minimal text chat window.
