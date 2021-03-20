@@ -15,7 +15,8 @@ Also have a look at the [YouTube channel](https://www.youtube.com/channel/UC_QIo
 
 * [Setup](#setup)
 * [List of Features](#list-of-features)
-   * [Controls](#controls)
+   * [Recent Additions](#recent-additions)
+	* [Controls](#controls)
    * [Game Elements](#game-elements)
    * [Game Settings & Actions](#game-settings--actions)
 * [Planned Additions](#planned-additions)
