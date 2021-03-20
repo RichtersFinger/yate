@@ -678,7 +678,9 @@ welcome.on('connection', function (socket) {
 			var minz = Math.min(cardlists[cardlist][0].zIndex, minzrest);
 			var maxz = minz + Object.keys(serverdecks[cardlists[cardlist][0].deckid]).length - 1;
 
-			for (var i = 0; i < cardlists[cardlist].length; i++) {
+			// place new front cards first (hopefully improve rare glitches of visible reordering)
+			// otherwise make send list back to client to circumvent latency 
+			for (var i = cardlists[cardlist].length - 1; i >= 0; i--) {
 				if (cardlists[cardlist][i].zIndex !== maxz - cardlists[cardlist].length + 1 + i) {
 					cardlists[cardlist][i].timestamp = newtimestamp;
 					cardlists[cardlist][i].zIndex = maxz - cardlists[cardlist].length + 1 + i;

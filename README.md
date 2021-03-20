@@ -52,7 +52,14 @@ See the [List of Features](#list-of-features) and [demos](https://www.youtube.co
 
 ## List of Features
 
+### Recent Additions
+* **Controls**: The context now menu contains an option `Show Controls` opening a window detailing the controls.
+* **New Log Window**: The log window can now be dragged and resized.
+* **Animated Pointers**: Players and the game master can place animated pointers by holding `Spacebar` and clicking with 'Left Mouse Button'.
+* **Change Indicator on Game Elements**: Game elements that have been changed but not pushed to the server yet are highlighted by a blinking border.
+
 ### Controls
+Players can open a list of controls with the option `Show Controls` from the context menu.
 * **Move Camera**: Hold `Middle Mouse Button` and drag your mouse to move your view.
 * **Zoom In/Out**: By turning the `Mouse Wheel` you can zoom in and out of the game.
 * **Interact**: You can drag&drop most game elements (if you are permitted to by the game master) or double click with your `Left Mouse Button` to interact (e.g. double clicking on a `Die` will initiate a dice roll, whereas a double click on a `Card` will cause this card to turn over).
@@ -267,7 +274,6 @@ Next on the list of features/changes to be implemented:
 * **Property Editor** Editor window to set up game element properties more comfortable.
 * **n-die** n-sided die.
 * **Chat**: Minimal text chat window.
-* **Help**: Include in-game information regarding controls.
 * **Cleanup**: Due to the grown nature of yate, it is a (for now persistent) goal to clean up the code base and unify functionalities.
 
 ## Known Issues
