@@ -117,7 +117,7 @@ var resourcelist = function(dir, done) {
 					  next();
 					});
         } else {
-					if (!file.includes("_server_")) {
+					if (!file.includes("_server_") && !file.includes("_thumbnails_")) {
 						results.push(file.substring(__dirname.length+1).replace(/\\/g, "/"));
 					}
 					next();
@@ -679,7 +679,7 @@ welcome.on('connection', function (socket) {
 			var maxz = minz + Object.keys(serverdecks[cardlists[cardlist][0].deckid]).length - 1;
 
 			// place new front cards first (hopefully improve rare glitches of visible reordering)
-			// otherwise make send list back to client to circumvent latency 
+			// otherwise make send list back to client to circumvent latency
 			for (var i = cardlists[cardlist].length - 1; i >= 0; i--) {
 				if (cardlists[cardlist][i].zIndex !== maxz - cardlists[cardlist].length + 1 + i) {
 					cardlists[cardlist][i].timestamp = newtimestamp;

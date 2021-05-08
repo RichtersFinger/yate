@@ -51,9 +51,21 @@ See the [List of Features](#list-of-features) and [demos](https://www.youtube.co
 
 <sup>c</sup> Depending on your OS and choice of text editor the format for line endings may vary. The player list provided in this repository uses Unix (LF) line endings instead of Windows (CR+LF) line endings. If possible, change your editor settings accordingly or simply make a new `players.dat` file from scratch in the format shown in the setup tutorial.
 
+### Additional Features
+By additionally installing [Jimp](https://www.npmjs.com/package/jimp) you can create thumbnails for all images you placed in the `img/` directory. To this end, first install Jimp by entering
+   ```console
+   $ <path-to-npm>/npm install jimp
+   ```
+and after a successful install you can execute
+   ```console
+   $ <path-to-node>/node makethumbnails.js
+   ```
+This script will search for compatible image files (jpg or png) in your `img/` directory and automatically place thumbnails of those images in `img/_thumbnails_/`. If you then open an image selection-dialog in yate you get a thumbnail-preview of an image from the autocomplete you hover over with your mouse.
+
 ## List of Features
 
 ### Recent Additions
+* **Image Thumbnails**: Execution of the script `makethumbnails.js` enables the automated creation of image thumbnails (if [Jimp](https://www.npmjs.com/package/jimp) is installed, see Additional Features above for details). During image selection this thumbnail is shown on mouseover in the autocomplete list.
 * **Controls**: The context now menu contains an option `Show Controls` opening a window detailing the controls.
 * **New Log Window**: The log window can now be dragged and resized.
 * **Animated Pointers**: Players and the game master can place animated pointers by holding `Spacebar` and clicking with 'Left Mouse Button'.
@@ -271,7 +283,6 @@ Feel free to ask for help on implementation of modifications, suggest features, 
 Please refer to me via [mail](mailto:mail.yateofficial@gmail.com).
 
 Next on the list of features/changes to be implemented:
-* **Thumbnails** Thumbnail preview for image selection.
 * **Property Editor** Editor window to set up game element properties more comfortable.
 * **n-die** n-sided die.
 * **Chat**: Minimal text chat window.
@@ -285,7 +296,7 @@ As stated in the [Planned Additions](#planned-additions) section, the cleanup wi
 
 ## License
 
-Copyright (c) 2020 Steffen Richters-Finger
+Copyright (c) 2020-2021 Steffen Richters-Finger
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
