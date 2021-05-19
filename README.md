@@ -65,6 +65,7 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 ## List of Features
 
 ### Recent Additions
+* **thispersondoesnotexist support**: Pictures of random face can now be loaded in descriptions of `Tokens`. Those images are fetched from [thispersondoesnotexist.com/](https://thispersondoesnotexist.com/).
 * **Canvas Overhaul**: The `Canvas` tool-window has been reworked for a more intuitive control. Brush types (as in creation of rectangles or ellipsis) and background transparency have been added.
 * **Image Thumbnails**: Execution of the script `makethumbnails.js` enables the automated creation of image thumbnails (if [Jimp](https://www.npmjs.com/package/jimp) is installed, see Additional Features above for details). During image selection this thumbnail is shown on mouseover in the autocomplete list.
 * **Controls**: The context now menu contains an option `Show Controls` opening a window detailing the controls.
@@ -133,6 +134,8 @@ Aside from the `Die` elements that are only visible for their creator, only the 
 
 * **Token/Marker Description**
     The description name and text of a `Token` or a `Marker` can be edited by first expanding the description. From there the description can either be edited by clicking `Edit` or loaded by clicking `Load`. The latter requires a file to be prepared in the `data/` directory in the format described in the demo-file `desctest.dat`.
+
+	 In case of a `Token` description a `Random Face`-Button appears after clicking on `Edit`, which allows to load the current face from [thispersondoesnotexist.com/](https://thispersondoesnotexist.com/) as temporary image on click. This image is then stored by the server as a file on the next `Push`.
 
 * **Canvas Element**
    The `Canvas` element based on [Fabric.js](http://fabricjs.com/) can be used in very different scenarios like an easy way to make records, quickly sketch surroundings in a Pen&Paper game, or drawing charades.

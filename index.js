@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var http = require('https');
 var server = require('http').Server(app);
 var io = require('socket.io')(server, {
 	  pingInterval: 25000,
@@ -11,7 +12,9 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.8";
+const version = "1.9";
+
+const thispersondoesnotexisturl = "https://thispersondoesnotexist.com/image";
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/game.html');
@@ -464,6 +467,24 @@ welcome.on('connection', function (socket) {
 	});
 	socket.on('requestrestoretoken', function (someid) {
 		if (servertokenframes[someid]) socket.emit('updatetokenframe', servertokenframes[someid]);
+	});
+	socket.on('requesttokenrandomimg', function () {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			http.get(thispersondoesnotexisturl, (image) => {
+			    image.setEncoding('base64');
+			    body = "data:" + image.headers["content-type"] + ";base64,";
+			    image.on('data', (data) => { body += data});
+			    image.on('end', () => {
+	 				socket.emit('anotherpersonthatdoesnotexist', body);
+			    });
+			}).on('error', (e) => {
+			    console.log('Error while fetching notarealperson:',  e.message);
+			});
+		}
 	});
 	socket.on('pushcard', function (somecard) {
 		if (userplayerId === -1 && !alertednotloggedin) {
