@@ -11,7 +11,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.7";
+const version = "1.8";
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/game.html');

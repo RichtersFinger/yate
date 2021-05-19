@@ -65,11 +65,16 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 ## List of Features
 
 ### Recent Additions
+* **Canvas Overhaul**: The `Canvas` tool-window has been reworked for a more intuitive control. Brush types (as in creation of rectangles or ellipsis) and background transparency have been added.
 * **Image Thumbnails**: Execution of the script `makethumbnails.js` enables the automated creation of image thumbnails (if [Jimp](https://www.npmjs.com/package/jimp) is installed, see Additional Features above for details). During image selection this thumbnail is shown on mouseover in the autocomplete list.
 * **Controls**: The context now menu contains an option `Show Controls` opening a window detailing the controls.
 * **New Log Window**: The log window can now be dragged and resized.
 * **Animated Pointers**: Players and the game master can place animated pointers by holding `Spacebar` and clicking with 'Left Mouse Button'.
 * **Change Indicator on Game Elements**: Game elements that have been changed but not pushed to the server yet are highlighted by a blinking border.
+
+### Recent Fixes
+* **Canvas**  A number of smaller issues have been fixed.
+* **Thumbnails** Thumbnail-previews are not correctly hidden if an image is selected.
 
 ### Controls
 Players can open a list of controls with the option `Show Controls` from the context menu.
@@ -132,12 +137,13 @@ Aside from the `Die` elements that are only visible for their creator, only the 
 * **Canvas Element**
    The `Canvas` element based on [Fabric.js](http://fabricjs.com/) can be used in very different scenarios like an easy way to make records, quickly sketch surroundings in a Pen&Paper game, or drawing charades.
 
-   After creation double click with the `Left Mouse Button` to enter the drawing/editing mode. The menu on the right side of the screen provides the basic settings like brush size and color or enables the addition of Fabric.js-objects like `Images` or `Text` to the `Canvas`. Using the button on the bottom right or by pressing `Tab` you can toggle between `Draw`- and `Edit`-mode. While in `Edit` mode you can select and manipulate objects previously added to the `Canvas`. This also includes a context menu for those `Canvas` objects.
+   After creation double click with the `Left Mouse Button` to enter the drawing/editing mode. The menu on the right side of the screen provides the basic settings like brush type (free draw, create rectangles, or ellipsis), size, and color or enables the addition of Fabric.js-objects like `Images` or `Text` to the `Canvas`. Using the button on the bottom right or by pressing `Tab` you can toggle between `Drawing`- and `Edit`-mode. While in `Edit` mode you can select and manipulate objects previously added to the `Canvas`. This also includes a context menu for those `Canvas` objects.
 
    The configurable settings for this element are:
    * **Owner** - controls who has permission to draw on this element
    * **Position Streaming** - toggle whether changes in the position of this element are streamed to the server
    * **Content Streaming** - toggle whether content changes of this `Canvas` are streamed to the server
+   * **Transparent Background** - toggle whether the background of this canvas element is transparent
    * **Lock** - toggle whether this element can be moved
    * **Set Canvas Size** - specify the size of the selected `Canvas`
 

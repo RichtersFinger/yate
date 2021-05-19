@@ -40,9 +40,9 @@
 	  color: #cccccc;
 	}
 	.classWithShadow{
-	   -moz-box-shadow: 1px 1px 2px #000;
-	   -webkit-box-shadow: 1px 1px 2px #000;
-	   box-shadow: 1px 1px 2px #000;
+	   -moz-box-shadow: 1px 1px 2px #eeeeee;
+	   -webkit-box-shadow: 1px 1px 2px #eeeeee;
+	   box-shadow: 1px 1px 2px #eeeeee;
 	}
 
 	.nowrap {
@@ -144,6 +144,10 @@
   .tab button.active {
     background-color: #ccc;
   }
+  .headlinetext {
+	-webkit-text-stroke: 2px black;
+	font-family: sans; color: white;
+  }
 </style>
 
 
@@ -153,6 +157,9 @@
     <input type="file" id="fileinputdialog" style="display:none">
     <div id="loaderdiv" style="background-color: lightgrey; position: fixed; bottom: 0; left: 0; width: 50px; height: 50px; overflow: hidden; visibility: hidden; z-index: 500"></div>
     <div id="gamediv" style="background-color: grey; position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;" class="game_context_menu btn btn-neutral">
+		 <div id="currentcanvasmodediv" style="position:relative; text-align: center; visibility: hidden">
+			 <h1 id="currentcanvasmodetext" class="headlinetext noselect nowrap"style="display: inline-block">Hello World</h1>
+		 </div>
 	    <!--<canvas id="c" width="500" height="400"></canvas> -->
 	    <div id="colorinputdivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
 		    <div id="colorinputdiv" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: absolute; top: 0; left: 0; width: 200px; padding: 1.0%; overflow: hidden; border: 3px solid #ffffff">
