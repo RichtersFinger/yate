@@ -65,7 +65,8 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 ## List of Features
 
 ### Recent Additions
-* **thispersondoesnotexist support**: Pictures of random face can now be loaded in descriptions of `Tokens`. Those images are fetched from [thispersondoesnotexist.com/](https://thispersondoesnotexist.com/).
+* **various minor changes**: fixed laggy zoom on `Canvas`, added banner shown while holding `Spacebar` to place animated pointers, visibility option for `Canvas`, ..
+* **thispersondoesnotexist support**: Pictures of random faces can now be loaded in descriptions of `Tokens`. Those images are fetched from [thispersondoesnotexist.com/](https://thispersondoesnotexist.com/).
 * **Canvas Overhaul**: The `Canvas` tool-window has been reworked for a more intuitive control. Brush types (as in creation of rectangles or ellipsis) and background transparency have been added.
 * **Image Thumbnails**: Execution of the script `makethumbnails.js` enables the automated creation of image thumbnails (if [Jimp](https://www.npmjs.com/package/jimp) is installed, see Additional Features above for details). During image selection this thumbnail is shown on mouseover in the autocomplete list.
 * **Controls**: The context now menu contains an option `Show Controls` opening a window detailing the controls.
@@ -74,8 +75,9 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 * **Change Indicator on Game Elements**: Game elements that have been changed but not pushed to the server yet are highlighted by a blinking border.
 
 ### Recent Fixes
-* **Canvas**  A number of smaller issues have been fixed.
-* **Thumbnails** Thumbnail-previews are not correctly hidden if an image is selected.
+* **various minor fixes**: fixed bugged `Marker` descriptions, ..
+* **Canvas**:  A number of smaller issues have been fixed.
+* **Thumbnails**: Thumbnail-previews are not correctly hidden if an image is selected.
 
 ### Controls
 Players can open a list of controls with the option `Show Controls` from the context menu.
@@ -146,6 +148,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    * **Owner** - controls who has permission to draw on this element
    * **Position Streaming** - toggle whether changes in the position of this element are streamed to the server
    * **Content Streaming** - toggle whether content changes of this `Canvas` are streamed to the server
+   * **Visibility** - toggle visibility for non-game master on and off
    * **Transparent Background** - toggle whether the background of this canvas element is transparent
    * **Lock** - toggle whether this element can be moved
    * **Set Canvas Size** - specify the size of the selected `Canvas`
