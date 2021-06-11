@@ -65,6 +65,7 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 ## List of Features
 
 ### Recent Additions
+* **dice roll sfx**: animated dice make a dice roll sound on roll; disable globally with game option `disableDieSound`; animation has been improved
 * **various minor changes**: fixed laggy zoom on `Canvas`, added banner shown while holding `Spacebar` to place animated pointers, visibility option for `Canvas`, ..
 * **thispersondoesnotexist support**: Pictures of random faces can now be loaded in descriptions of `Tokens`. Those images are fetched from [thispersondoesnotexist.com/](https://thispersondoesnotexist.com/).
 * **Canvas Overhaul**: The `Canvas` tool-window has been reworked for a more intuitive control. Brush types (as in creation of rectangles or ellipsis) and background transparency have been added.
@@ -75,6 +76,7 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 * **Change Indicator on Game Elements**: Game elements that have been changed but not pushed to the server yet are highlighted by a blinking border.
 
 ### Recent Fixes
+* **more various changes**: see file `changelog.log` for details
 * **various minor fixes**: fixed bugged `Marker` descriptions, ..
 * **Canvas**:  A number of smaller issues have been fixed.
 * **Thumbnails**: Thumbnail-previews are not correctly hidden if an image is selected.
@@ -87,7 +89,7 @@ Players can open a list of controls with the option `Show Controls` from the con
 * **Modify**: By clicking with your `Right Mouse Button` you can open a [context menu](https://swisnl.github.io/jQuery-contextMenu/) of available actions.
 
    Game Master Controls: Aside from general settings and actions you will find a section referring to the game element clicked on. This section is initiated with a label containing the type of the game element and its internal id. There the game master can `push`, `delete` or modify settings of this game element. See below for a detailed description of all functionalities. Most elements can also be manipulated in size or regarding the element layering by holding `Shift` or `Alt`, respectively, while turning the `Mouse Wheel`. Unpushed changes are indicated by an orange flashing or the respective game element's background/border.
-* **Pointer**: By holding `Space` and clicking with your `Left Mouse Button` you can place a pointer at that location visible to everyone else. This pointer is temporary and vanishes after a few seconds. The pointer color can be set by opening the context menu while holding down `a` and clicking on `Select Pointer Color`.
+* **Pointer**: By holding `Spacebar` and clicking with your `Left Mouse Button` you can place a pointer at that location visible to everyone else. This pointer is temporary and vanishes after a few seconds. The pointer color can be set by opening the context menu while holding down `a` and clicking on `Select Pointer Color`.
 
 ### Game Elements
 Aside from the `Die` elements that are only visible for their creator, only the game master can create game elements. After creation those elements are initially only a local object until either the `Push This` or the `Push All` actions from the context menu are performed. Only then the server receives the information. In general, changes that are made in the configuration of game elements will be local until pushed to the server. In some cases there will also be shown a `Restore` option to reload the current server-side settings for the given element. Selecting `Push Delete` will immediately delete the selected element from the server. All updates the server receives are passed on to all clients.
@@ -249,6 +251,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
       * `d<deckid>cardturnangleinc<intValue>` - use this option to set a specific angle increment for turning `Cards` from a specific `Deck` (see shortcut in `Deck` → `Details`)
       * `notes` - allow players to open a window where notes can be made; this can be useful for Pen&Paper games where character attributes or inventory may be noted; alternatively, the game master can use this to make player-specific notes
       * `yahtzee` - adds a 'Roll All' option the context menu of players; selecting this will perform a `Roll` on every die available
+      * `disableDieSound` - disable dice roll sfx globally
       * `fontDecorative` - change the generic font to a more decorative/Fantasy-style font
 
    * **Remove Options**

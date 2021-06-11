@@ -12,7 +12,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.9.1";
+const version = "1.10";
 
 const thispersondoesnotexisturl = "https://thispersondoesnotexist.com/image";
 
@@ -735,7 +735,7 @@ welcome.on('connection', function (socket) {
 				}
 			}
 		}
-		console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards.');
+		//console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards.');
 		// Fisher-Yates algorithm
 		for (var i = 0; i <= shufflelist.length - 2; i++) {
 			var partner = Math.floor(i + (shufflelist.length - 1 - i + 1) * random()); // random int in range i<=partner<shufflelist.length-1
@@ -765,7 +765,7 @@ welcome.on('connection', function (socket) {
 				}
 			}
 		}
-		console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards angles.');
+		//console.log(players[userplayerId] + ' shuffled ' + shufflelist.length + ' cards angles.');
 		for (var i = 0; i < shufflelist.length; i++) {
 			shufflelist[i].angle = Math.floor(360.0/angleinc * random()) * angleinc;
 			shufflelist[i].timestamp += 1;
@@ -921,7 +921,7 @@ welcome.on('connection', function (socket) {
 				serverlotteryframes[someid].timestamp = newtimestamp;
 				socket.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
 				socket.broadcast.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
-				console.log('Player ' + players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery ' + someid +  '.');
+				//console.log('Player ' + players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery ' + someid +  '.');
 				if (serverlotteryframes[someid].playsound) {
 					for (var i = 1; i < players.length; i++) {
 						//if (serverlotteryframes[someid].viewingrights.includes(i)) {
@@ -1050,7 +1050,7 @@ welcome.on('connection', function (socket) {
 					var dieresult = serverpublicdieframes[someid].value;
 					socket.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
 					socket.broadcast.emit('setpublicdievalue', someid, serverpublicdieframes[someid].value, newtimestamp);
-					console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
+					//console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + serverpublicdieframes[someid].maxvalue + ').');
 					if (gameoptions.includes('hugo')) {
 						if (serverpublicdieframes[someid].maxvalue == 6 && dieresult === 6) dieresult = "hugo";
 					}
@@ -1079,7 +1079,7 @@ welcome.on('connection', function (socket) {
 	socket.on('reqdiceroll', function (someid, somemaxvalue) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
 		socket.emit('setdievalue', someid, dieresult);
-		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ').');
+		//console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ').');
 		if (gameoptions.includes('hugo')) {
 			if (somemaxvalue == 6 && dieresult === 6) dieresult = "hugo";
 		}
@@ -1092,7 +1092,7 @@ welcome.on('connection', function (socket) {
 	socket.on('reqdiceroll_linked', function (somename, someid, somemaxvalue) {
 		var dieresult = Math.floor(1 + somemaxvalue * random());
 		socket.emit('setdievalue', someid, dieresult);
-		console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ') for token ' + somename + '.');
+		//console.log('Player ' + players[userplayerId] + ' rolled ' + dieresult + ' (d' + somemaxvalue + ') for token ' + somename + '.');
 		if (gameoptions.includes('hugo')) {
 			if (somemaxvalue == 6 && dieresult === 6) dieresult = "hugo";
 		}

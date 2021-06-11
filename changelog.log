@@ -1,0 +1,9 @@
+1.10
+* added sfx for dice roll (disable with gameoption 'disableDieSound')
+* fixed dice roll animation
+- made extended context menu available for click on non-background
+- fixed uneven border for thumbnail image preview
+- made TTS only play if volume > 0
+- canvas duplicate now available for players (instead of just GM) and for images
+- fixed pressing spacebar in canvas edit-/draw-mode closing top info banner
+- some (player) activities like a dice roll are no longer entered in server log
