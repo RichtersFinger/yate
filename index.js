@@ -12,7 +12,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.10";
+const version = "1.10.1";
 
 const thispersondoesnotexisturl = "https://thispersondoesnotexist.com/image";
 
