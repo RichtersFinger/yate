@@ -65,6 +65,8 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 ## List of Features
 
 ### Recent Additions
+* **timer element added**: a configurable `Timer` element is now available
+* **sfx volume+test**: added a test button and volume slider in `Play Sound` dialog
 * **dice roll sfx**: animated dice make a dice roll sound on roll; disable globally with game option `disableDieSound`; animation has been improved
 * **various minor changes**: fixed laggy zoom on `Canvas`, added banner shown while holding `Spacebar` to place animated pointers, visibility option for `Canvas`, ..
 * **thispersondoesnotexist support**: Pictures of random faces can now be loaded in descriptions of `Tokens`. Those images are fetched from [thispersondoesnotexist.com/](https://thispersondoesnotexist.com/).
@@ -76,6 +78,7 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 * **Change Indicator on Game Elements**: Game elements that have been changed but not pushed to the server yet are highlighted by a blinking border.
 
 ### Recent Fixes
+* **canvas rectangles**: removed bug where rectangles were deleted on resize
 * **more various changes**: see file `changelog.log` for details
 * **various minor fixes**: fixed bugged `Marker` descriptions, ..
 * **Canvas**:  A number of smaller issues have been fixed.
@@ -192,12 +195,27 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    The configurable settings for this element are:
    * **Owner** - controls who has permission to drag this element or pick next result
    * **Visibility** - controls element visibility for players and who will get `Lottery` results printed to the log
+   * **Lock** - toggle whether this element can be moved
    * **Position Streaming** - toggle whether changes in the position of this element are streamed to the server
    * **Select Random** - toggle whether next pick will be random from the list of `Lottery` options
    * **Turn Indicator** - toggle whether this `Lottery` is treated as turn indicator printing changes to the log accordingly
    * **Write Log** - toggles whether `Lottery` results are printed to the log
    * **Use TTS** - toggles whether `Lottery` results are queued as TTS (text-to-speech) tofor all players (except the game master); this ignores the visibility setting
-   * **Lock** - toggle whether this element can be moved
+
+* **Timer Element**
+	The `Timer` element can be used to indicate remaining time for a player's turn or to notify if a certain amount of time has passed since the `Timer` has been started. If the `Timer` is set to `autorestart`, then only the game master can stop the repeated countdown (by double clicking with `Left Mouse Button` or with the option `Stop Timer` in the context menu).
+
+	The configurable settings for this element are:
+	* **Owner** - controls who has permission to drag this element or (re-)start the `Timer`
+	* **Visibility** - controls element visibility for players and who can hear the sfx if enabled
+	* **Position Streaming** - toggle whether changes in the position of this element are streamed to the server
+	* **Lock** - toggle whether this element can be moved
+	* **Set Duration** - specify the timeout duration in seconds
+	* **Autorestart** - toggle whether the `Timer` will be restarted automatically after time has run out
+	* **Play SFX** - toggle whether sfx will be played upon timeout
+	* **Set SFX** - select the file for sfx playback
+	* **Show Label** - toggle whether a digital indicator is shown on the `Timer`
+	* **Link to Lottery** - use this to select a specific Lottery to be triggered on timeout
 
 * **Die Element**
    The `Die` element is the only kind of game element that all players can create. Also, this element is only visible for the local player and is not being saved when the connection is closed. This element will not be affected by repositioning of the camera or changes of the zoom. It can be rescaled by holding `Shift` while turning the `Mouse Wheel`. You can roll a `Die` by double clicking with the `Left Mouse Button` or by opening its context menu and selecting `Roll`.

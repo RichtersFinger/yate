@@ -1,3 +1,8 @@
+1.11
+* added timer/hourglass element
+* added 'Test Effect'-Button + volume slider for sfx selection
+- fixed bug with canvas where rectangles are removed on change of canvas size
+
 1.10.1
 - actually fixed pressing spacebar in canvas edit-/draw-mode closing top info banner
 - show currently selected color in canvas draw mode

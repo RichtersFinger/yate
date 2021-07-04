@@ -12,7 +12,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.10.1";
+const version = "1.11";
 
 const thispersondoesnotexisturl = "https://thispersondoesnotexist.com/image";
 
@@ -83,10 +83,10 @@ server.listen(port, function(){
 	rngseed(currenttime);
 });
 
-const serverContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9, "Soundboard":10};
+const serverContainerTypes = {"FrameContainer":1, "TokenContainer":2, "Die":3, "Marker":4, "FrameLabel":5, "Card":6, "CanvasFrame":7, "LotteryFrame":8, "PublicDieFrame":9, "Soundboard":10, "Timer":11};
 const serverSoundboardTypes = {"file":1, "TTS":2};
 
-var playingsound = false, lastsound = '', lastsoundlooping = false;
+var playingsound = false, lastsound = '', lastsoundlooping = false, lastsoundvolume = 0.5;
 var showeventlog = false;
 var camera0set = false;
 var camerax, cameray, camerazoom;
@@ -95,6 +95,7 @@ var servertokenframes =  {};
 var serverdecks = {};
 var servercanvasframes = {};
 var serverlotteryframes = {};
+var servertimerframes = {};
 var serverpublicdieframes = {};
 var serversoundboards = {};
 
@@ -156,7 +157,7 @@ welcome.on('connection', function (socket) {
 					socket.broadcast.emit('loginoptions', players, playersloggedin);
 					socket.emit('loginsuccess', userplayerId, players[userplayerId]);
 					if (playingsound) {
-						socket.emit('playsound', lastsound, lastsoundlooping);
+						socket.emit('playsound', lastsound, lastsoundlooping, lastsoundvolume);
 					}
 					if (userplayerId === 0) {
 						for (var someplayer in playernotes) {
@@ -909,62 +910,90 @@ welcome.on('connection', function (socket) {
 	socket.on('reqlotterypick', function (someid, newtimestamp, newindex) {
 		if (serverlotteryframes[someid]) {
 			if (serverlotteryframes[someid].owner.includes(userplayerId)) {
-				if (newindex !== undefined) {
-					serverlotteryframes[someid].currentindex = newindex;
-				} else {
-					if (serverlotteryframes[someid].selectatrandom) {
-						serverlotteryframes[someid].currentindex = Math.floor(serverlotteryframes[someid].options.length * random());
-					} else {
-						serverlotteryframes[someid].currentindex = (serverlotteryframes[someid].currentindex + 1) % serverlotteryframes[someid].options.length;
-					}
-				}
-				serverlotteryframes[someid].timestamp = newtimestamp;
-				socket.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
-				socket.broadcast.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex);
-				//console.log('Player ' + players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery ' + someid +  '.');
-				if (serverlotteryframes[someid].playsound) {
-					for (var i = 1; i < players.length; i++) {
-						//if (serverlotteryframes[someid].viewingrights.includes(i)) {
-							socket.broadcast.to(playersuserId[i]).emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
-						//}
-					}
-					// broadcast.to does not send to issuing client
-					if (userplayerId !== 0 && serverlotteryframes[someid].viewingrights.includes(userplayerId)) socket.emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
-				}
-				if (serverlotteryframes[someid].publicresult) {
-
-					// send info to owner
-					if (!serverlotteryframes[someid].isturnindicator)
-						socket.emit('printevent', 'You picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
-
-					if (showeventlog) {
-						var someresult = serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex];
-						if (serverlotteryframes[someid].isturnindicator) {
-							if (someresult.charAt(someresult.length - 1) == "s" || someresult.charAt(someresult.length - 1) == "x" || someresult.charAt(someresult.length - 1) == "z") {
-								socket.emit('printevent', 'Next: ' + someresult + "' turn.");
-								socket.broadcast.emit('printevent', 'Next: ' + someresult + "' turn.");
-							} else {
-								socket.emit('printevent', 'Next: ' + someresult + "'s turn.");
-								socket.broadcast.emit('printevent', 'Next: ' + someresult + "'s turn.");
-							}
-						} else {
-							socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
-							for (var i = 1; i < players.length; i++) {
-								if (serverlotteryframes[someid].viewingrights.includes(i)) {
-									// broadcast.to does not send to issuing client
-									socket.broadcast.to(playersuserId[i]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
-								}
-							}
-						}
-					} else {
-						socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
-					}
-				} else {
-					socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
-				}
+				handlereqlotterypick(socket, userplayerId, false, someid, newtimestamp, newindex);
 			}
 		} else {
 				socket.emit('alertmsg', "Unknown lottery - try push.");
+		}
+	});
+
+	socket.on('pushtimer', function (someframe) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (servertimerframes[someframe.id]) {
+				console.log("GM updated timer " + someframe.id + ".");
+			} else {
+				console.log("GM pushed new timer " + someframe.id + ".");
+			}
+			servertimerframes[someframe.id] = someframe;
+			if (!servertimerframes[someframe.id].iteration) servertimerframes[someframe.id].iteration = 0;
+			socket.emit('updatetimerframe', servertimerframes[someframe.id]);
+			socket.broadcast.emit('updatetimerframe', servertimerframes[someframe.id]);
+		}
+	});
+	socket.on('updatetimerposition', function (someid, newx, newy, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (servertimerframes[someid]) {
+			if (servertimerframes[someid].owner.includes(userplayerId)) {
+				if (servertimerframes[someid].timestamp < newtimestamp) {
+					servertimerframes[someid].x = newx;
+					servertimerframes[someid].y = newy;
+
+					var currentdate = new Date();
+					currenttime = currentdate.getTime();
+					servertimerframes[someid].timestamp = newtimestamp;
+					if ( currenttime - lasttimes[userplayerId] >= 1000/100) {
+						lasttimes[userplayerId] = currenttime;
+						socket.emit('updatetimerframeposition', someid, newx, newy, newtimestamp);
+						socket.broadcast.emit('updatetimerframeposition', someid, newx, newy, newtimestamp);
+					}
+				}
+			}
+		}
+	});
+	socket.on('reqtimerrestart', function (someid, newtimestamp) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (servertimerframes[someid]) {
+			if (servertimerframes[someid].owner.includes(userplayerId)) {
+				servertimerframes[someid].hasbeenstopped = false;
+				servertimerframes[someid].iteration++;
+				autorestarttimer(socket, someid);
+			}
+		} else {
+				socket.emit('alertmsg', "Unknown timer - try push.");
+		}
+	});
+	socket.on('reqtimerstop', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (servertimerframes[someid]) {
+			if (servertimerframes[someid].owner.includes(userplayerId)) {
+				servertimerframes[someid].hasbeenstopped = true;
+			}
+		} else {
+				socket.emit('alertmsg', "Unknown timer - try push.");
+		}
+	});
+	socket.on('pushdeletetimer', function (someid) {
+		if (userplayerId === -1 && !alertednotloggedin) {
+			alertednotloggedin = true;
+			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
+		}
+		if (userplayerId === 0) {
+			if (servertimerframes[someid]) delete servertimerframes[someid];
+			socket.emit('deletetimer', someid);
+			socket.broadcast.emit('deletetimer', someid);
 		}
 	});
 	socket.on('pushpublicdie', function (someframe) {
@@ -1181,29 +1210,40 @@ welcome.on('connection', function (socket) {
 			socket.emit('alertmsg', "Unknown soundboard - try push.");
 		}
 	});
-	socket.on('requestplaysound', function (somesound, looping) {
+	socket.on('requestplaysound', function (somesound, looping, somevolumemultiplier) {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
+			var thisvolumemultiplier;
+			if (somevolumemultiplier)
+				thisvolumemultiplier = somevolumemultiplier;
+			else
+				thisvolumemultiplier = 1.0;
 			if (looping) {
 				playingsound = true;
 				lastsound = somesound;
 				lastsoundlooping = looping;
+				lastsoundvolume = thisvolumemultiplier;
 			}
-			socket.emit('playsound', somesound, looping);
-			socket.broadcast.emit('playsound', somesound, looping);
+			socket.emit('playsound', somesound, looping, thisvolumemultiplier);
+			socket.broadcast.emit('playsound', somesound, looping, thisvolumemultiplier);
 		}
 	});
-	socket.on('requestqueueTTS', function (somemessage, somepitch, somerate) {
+	socket.on('requestqueueTTS', function (somemessage, somepitch, somerate, somevolumemultiplier) {
 		if (userplayerId === -1 && !alertednotloggedin) {
 			alertednotloggedin = true;
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			socket.emit('queueTTS', somemessage, somepitch, somerate);
-			socket.broadcast.emit('queueTTS', somemessage, somepitch, somerate);
+			var thisvolumemultiplier;
+			if (somevolumemultiplier)
+				thisvolumemultiplier = somevolumemultiplier;
+			else
+				thisvolumemultiplier = 1.0;
+			socket.emit('queueTTS', somemessage, somepitch, somerate, thisvolumemultiplier);
+			socket.broadcast.emit('queueTTS', somemessage, somepitch, somerate, thisvolumemultiplier);
 		}
 	});
 	socket.on('requeststopsound', function () {
@@ -1250,6 +1290,9 @@ welcome.on('connection', function (socket) {
 	}
 	for (var current in serverlotteryframes) {
 		socket.emit('updatelotteryframe', serverlotteryframes[current]);
+	}
+	for (var current in servertimerframes) {
+		socket.emit('updatetimerframe', servertimerframes[current]);
 	}
 	for (var current in serverpublicdieframes) {
 		socket.emit('updatepublicdieframe', serverpublicdieframes[current]);
@@ -1336,6 +1379,13 @@ function xmlsavestate(filename) {
 		}
 		collecteddata += "</lotteryframe>\n";
 	}
+	for (var currenttimer in servertimerframes) {
+		collecteddata += "<timerframe>\n";
+		for (var currentproperty in servertimerframes[currenttimer]) {
+			collecteddata += "\t<" + currentproperty + ">" + ("" + servertimerframes[currenttimer][currentproperty]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</" + currentproperty + ">\n";
+		}
+		collecteddata += "</timerframe>\n";
+	}
 	for (var currentdie in serverpublicdieframes) {
 		collecteddata += "<dieframe>\n";
 		for (var currentproperty in serverpublicdieframes[currentdie]) {
@@ -1417,6 +1467,85 @@ function saveimagetofile(image, filename, desiredfilename) {
 	} catch(err) {
 		console.log('some error occured ', err);
 	}
+}
+
+function autorestarttimer(somesocket, someid) {
+	somesocket.emit('restarttimeranim', someid, 100);
+	somesocket.broadcast.emit('restarttimeranim', someid, 100);
+	setTimeout(function() {
+		somesocket.emit('starttimer', someid, servertimerframes[someid].timer_duration);
+		somesocket.broadcast.emit('starttimer', someid, servertimerframes[someid].timer_duration);
+	}, 100);
+	let currentiteration = servertimerframes[someid].iteration;
+	setTimeout(function() {
+		if (servertimerframes[someid].iteration === currentiteration) {
+			somesocket.emit('executetimereffect', someid);
+			somesocket.broadcast.emit('executetimereffect', someid);
+			if (servertimerframes[someid].lotterylink > -1) {
+				if (serverlotteryframes[servertimerframes[someid].lotterylink]) {
+					handlereqlotterypick(somesocket, 0, true, servertimerframes[someid].lotterylink, serverlotteryframes[servertimerframes[someid].lotterylink].timestamp);
+				}
+			}
+			if (servertimerframes[someid].autorestart && !servertimerframes[someid].hasbeenstopped)
+				autorestarttimer(somesocket, someid);
+		}
+	}, servertimerframes[someid].timer_duration + 100);
+}
+
+function handlereqlotterypick(socket, userplayerId, forceupdate, someid, newtimestamp, newindex) {
+		if (newindex !== undefined) {
+			serverlotteryframes[someid].currentindex = newindex;
+		} else {
+			if (serverlotteryframes[someid].selectatrandom) {
+				serverlotteryframes[someid].currentindex = Math.floor(serverlotteryframes[someid].options.length * random());
+			} else {
+				serverlotteryframes[someid].currentindex = (serverlotteryframes[someid].currentindex + 1) % serverlotteryframes[someid].options.length;
+			}
+		}
+		serverlotteryframes[someid].timestamp = newtimestamp;
+		socket.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex, forceupdate);
+		socket.broadcast.emit('setlotteryindex', someid, newtimestamp, serverlotteryframes[someid].currentindex, forceupdate);
+		//console.log('Player ' + players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery ' + someid +  '.');
+		if (serverlotteryframes[someid].playsound) {
+			for (var i = 1; i < players.length; i++) {
+				//if (serverlotteryframes[someid].viewingrights.includes(i)) {
+					socket.broadcast.to(playersuserId[i]).emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
+				//}
+			}
+			// broadcast.to does not send to issuing client
+			if (userplayerId !== 0 && serverlotteryframes[someid].viewingrights.includes(userplayerId)) socket.emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
+		}
+		if (serverlotteryframes[someid].publicresult) {
+
+			// send info to owner
+			if (!serverlotteryframes[someid].isturnindicator)
+				socket.emit('printevent', 'You picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+
+			if (showeventlog) {
+				var someresult = serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex];
+				if (serverlotteryframes[someid].isturnindicator) {
+					if (someresult.charAt(someresult.length - 1) == "s" || someresult.charAt(someresult.length - 1) == "x" || someresult.charAt(someresult.length - 1) == "z") {
+						socket.emit('printevent', 'Next: ' + someresult + "' turn.");
+						socket.broadcast.emit('printevent', 'Next: ' + someresult + "' turn.");
+					} else {
+						socket.emit('printevent', 'Next: ' + someresult + "'s turn.");
+						socket.broadcast.emit('printevent', 'Next: ' + someresult + "'s turn.");
+					}
+				} else {
+					socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
+					for (var i = 1; i < players.length; i++) {
+						if (serverlotteryframes[someid].viewingrights.includes(i)) {
+							// broadcast.to does not send to issuing client
+							socket.broadcast.to(playersuserId[i]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
+						}
+					}
+				}
+			} else {
+				socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+			}
+		} else {
+			socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+		}
 }
 
 var m_w = 123456789;

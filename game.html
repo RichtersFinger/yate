@@ -203,8 +203,17 @@
 	    <div id="loadsounddivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; visibility: hidden; z-index: 0">
 		  <div id="loadsounddiv" class="autocomplete" style="background: repeating-linear-gradient(-55deg, #444 0px, #444 10px, #555 10px, #555 50px); position: relative; top: 0; left: 0; width: 320px; padding: 1.0%; border: 3px solid #ffffff">
 		          <div id="loadsoundautocompletecontainerdiv" class="autocomplete" style="position: relative; width: 100%">
-			     <input id="loadsoundinput" type="text" autocomplete="off" style="position: relative; width: 90%">
+			     <input id="loadsoundinput" type="text" autocomplete="off" style="position: relative; width: 300px">
 		          </div><br><br>
+					 <div id="loadsounddivcontainer_morecontrolsdiv" style="padding: 2.0%; width: 300px; position: relative; background: rgba(255,255,255,0.3)">
+   				 <label for="loadsounddivcontainer_volumeinput" style="display: inline-block">Volume</label>
+					 <br>
+   				 <input id="loadsounddivcontainer_volumeinput" name="loadsounddivcontainer_volumeinputname" type="range" style="position: relative; width: 100px; display: inline-block" min="0" max="1" step="0.05" value=0.5 oninput="this.nextElementSibling.value = this.value">
+   				 <output style="display: inline-block">0.5</output>
+					 <br>
+	 				<button id="loadsounddivcontainer_btest" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px; margin-top: 7px">Test Effect</button>
+  		          </div>
+					 <br>
 			<button id="loadsound_bapply" type="button" class="fancybutton" style="background-color: #38e038; width:100px; padding:5px 8px">Apply</button>
 			<button id="loadsound_bcancel" type="button" class="fancybutton" style="background-color: #d13824; width:100px; padding:5px 8px">Cancel</button>
 			<button id="loadsound_bupdate" type="button" class="fancybutton" style="background-color: #cccccc; width:100px; padding:5px 8px">Update List</button>
@@ -368,6 +377,7 @@
  <script src='lib/fabric.min.js'></script>
  <script src="lib/canvasframe.js"></script>
  <script src="lib/lottery.js"></script>
+ <script src="lib/timer.js"></script>
  <script src="lib/die.js"></script>
  <script src="lib/publicdie.js"></script>
  <script src="lib/autocomplete.js"></script>
