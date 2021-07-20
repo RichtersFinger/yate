@@ -1,3 +1,8 @@
+1.12
+* added urgency sfx option
+* linking timer to lottery allows to restart timer via lottery pick
+* timer can now be restarted prematurely in autorestart-mode
+
 1.11
 * added timer/hourglass element
 * added 'Test Effect'-Button + volume slider for sfx selection

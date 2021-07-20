@@ -203,7 +203,7 @@ Aside from the `Die` elements that are only visible for their creator, only the 
    * **Use TTS** - toggles whether `Lottery` results are queued as TTS (text-to-speech) tofor all players (except the game master); this ignores the visibility setting
 
 * **Timer Element**
-	The `Timer` element can be used to indicate remaining time for a player's turn or to notify if a certain amount of time has passed since the `Timer` has been started. If the `Timer` is set to `autorestart`, then only the game master can stop the repeated countdown (by double clicking with `Left Mouse Button` or with the option `Stop Timer` in the context menu).
+	The `Timer` element can be used to indicate remaining time for a player's turn or to notify if a certain amount of time has passed since the `Timer` has been started. If the `Timer` is set to `autorestart`, then only the game master can stop the repeated countdown (by using the option `Stop Timer` in the context menu).
 
 	The configurable settings for this element are:
 	* **Owner** - controls who has permission to drag this element or (re-)start the `Timer`
@@ -214,8 +214,10 @@ Aside from the `Die` elements that are only visible for their creator, only the 
 	* **Autorestart** - toggle whether the `Timer` will be restarted automatically after time has run out
 	* **Play SFX** - toggle whether sfx will be played upon timeout
 	* **Set SFX** - select the file for sfx playback
+	* **Play Urgent SFX** - toggle whether urgency sfx will be played close to the timeout (maximum of 10s or 10% of total remaining)
+	* **Set Urgent SFX** - select the file for urgency sfx playback
 	* **Show Label** - toggle whether a digital indicator is shown on the `Timer`
-	* **Link to Lottery** - use this to select a specific Lottery to be triggered on timeout
+	* **Link to Lottery** - use this to select a specific Lottery to be triggered on timeout; picking next in lottery causes the `Timer` to restart
 
 * **Die Element**
    The `Die` element is the only kind of game element that all players can create. Also, this element is only visible for the local player and is not being saved when the connection is closed. This element will not be affected by repositioning of the camera or changes of the zoom. It can be rescaled by holding `Shift` while turning the `Mouse Wheel`. You can roll a `Die` by double clicking with the `Left Mouse Button` or by opening its context menu and selecting `Roll`.

@@ -12,7 +12,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.11";
+const version = "1.12";
 
 const thispersondoesnotexisturl = "https://thispersondoesnotexist.com/image";
 
@@ -911,6 +911,13 @@ welcome.on('connection', function (socket) {
 		if (serverlotteryframes[someid]) {
 			if (serverlotteryframes[someid].owner.includes(userplayerId)) {
 				handlereqlotterypick(socket, userplayerId, false, someid, newtimestamp, newindex);
+				if (serverlotteryframes[someid].timerlink > -1) {
+					if (servertimerframes[serverlotteryframes[someid].timerlink]) {
+							servertimerframes[serverlotteryframes[someid].timerlink].hasbeenstopped = false;
+							servertimerframes[serverlotteryframes[someid].timerlink].iteration++;
+							autorestarttimer(socket, serverlotteryframes[someid].timerlink);
+					}
+				}
 			}
 		} else {
 				socket.emit('alertmsg', "Unknown lottery - try push.");
