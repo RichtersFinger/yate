@@ -1480,26 +1480,31 @@ function autorestarttimer(somesocket, someid) {
 	somesocket.emit('restarttimeranim', someid, 100);
 	somesocket.broadcast.emit('restarttimeranim', someid, 100);
 	setTimeout(function() {
-		somesocket.emit('starttimer', someid, servertimerframes[someid].timer_duration);
-		somesocket.broadcast.emit('starttimer', someid, servertimerframes[someid].timer_duration);
+		if (servertimerframes[someid]) {
+			somesocket.emit('starttimer', someid, servertimerframes[someid].timer_duration);
+			somesocket.broadcast.emit('starttimer', someid, servertimerframes[someid].timer_duration);
+		}
 	}, 100);
 	let currentiteration = servertimerframes[someid].iteration;
 	setTimeout(function() {
-		if (servertimerframes[someid].iteration === currentiteration) {
-			somesocket.emit('executetimereffect', someid);
-			somesocket.broadcast.emit('executetimereffect', someid);
-			if (servertimerframes[someid].lotterylink > -1) {
-				if (serverlotteryframes[servertimerframes[someid].lotterylink]) {
-					handlereqlotterypick(somesocket, 0, true, servertimerframes[someid].lotterylink, serverlotteryframes[servertimerframes[someid].lotterylink].timestamp);
+		if (servertimerframes[someid]) {
+			if (servertimerframes[someid].iteration === currentiteration) {
+				somesocket.emit('executetimereffect', someid);
+				somesocket.broadcast.emit('executetimereffect', someid);
+				if (servertimerframes[someid].lotterylink > -1) {
+					if (serverlotteryframes[servertimerframes[someid].lotterylink]) {
+						handlereqlotterypick(somesocket, -1, true, servertimerframes[someid].lotterylink, serverlotteryframes[servertimerframes[someid].lotterylink].timestamp);
+					}
 				}
+				if (servertimerframes[someid].autorestart && !servertimerframes[someid].hasbeenstopped)
+					autorestarttimer(somesocket, someid);
 			}
-			if (servertimerframes[someid].autorestart && !servertimerframes[someid].hasbeenstopped)
-				autorestarttimer(somesocket, someid);
 		}
 	}, servertimerframes[someid].timer_duration + 100);
 }
 
 function handlereqlotterypick(socket, userplayerId, forceupdate, someid, newtimestamp, newindex) {
+		// userplayerId === -1 for timer
 		if (newindex !== undefined) {
 			serverlotteryframes[someid].currentindex = newindex;
 		} else {
@@ -1515,18 +1520,29 @@ function handlereqlotterypick(socket, userplayerId, forceupdate, someid, newtime
 		//console.log('Player ' + players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery ' + someid +  '.');
 		if (serverlotteryframes[someid].playsound) {
 			for (var i = 1; i < players.length; i++) {
-				//if (serverlotteryframes[someid].viewingrights.includes(i)) {
+				if (serverlotteryframes[someid].viewingrights.includes(i)) {
 					socket.broadcast.to(playersuserId[i]).emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
-				//}
+				}
 			}
 			// broadcast.to does not send to issuing client
-			if (userplayerId !== 0 && serverlotteryframes[someid].viewingrights.includes(userplayerId)) socket.emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
+			if ((userplayerId !== 0 && serverlotteryframes[someid].viewingrights.includes(userplayerId)) || userplayerId === -1) socket.emit('queueTTS', serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex]);
 		}
-		if (serverlotteryframes[someid].publicresult) {
+		var originofchange = "";
+		if (userplayerId === -1) {
+			originofchange = "Timer";
+		} else {
+			originofchange = players[userplayerId];
+		}
 
+		if (serverlotteryframes[someid].publicresult) {
 			// send info to owner
-			if (!serverlotteryframes[someid].isturnindicator)
-				socket.emit('printevent', 'You picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+			if (!serverlotteryframes[someid].isturnindicator) {
+				if (userplayerId === -1) {
+					socket.emit('printevent', 'Timer picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+				} else {
+					socket.emit('printevent', 'You picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+				}
+			}
 
 			if (showeventlog) {
 				var someresult = serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex];
@@ -1539,19 +1555,19 @@ function handlereqlotterypick(socket, userplayerId, forceupdate, someid, newtime
 						socket.broadcast.emit('printevent', 'Next: ' + someresult + "'s turn.");
 					}
 				} else {
-					socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
+					socket.broadcast.to(playersuserId[0]).emit('printevent', originofchange + ' picked "' + someresult + '" from lottery.');
 					for (var i = 1; i < players.length; i++) {
 						if (serverlotteryframes[someid].viewingrights.includes(i)) {
 							// broadcast.to does not send to issuing client
-							socket.broadcast.to(playersuserId[i]).emit('printevent', players[userplayerId] + ' picked "' + someresult + '" from lottery.');
+							socket.broadcast.to(playersuserId[i]).emit('printevent', originofchange + ' picked "' + someresult + '" from lottery.');
 						}
 					}
 				}
 			} else {
-				socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+				socket.broadcast.to(playersuserId[0]).emit('printevent', originofchange+ ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
 			}
 		} else {
-			socket.broadcast.to(playersuserId[0]).emit('printevent', players[userplayerId] + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
+			socket.broadcast.to(playersuserId[0]).emit('printevent', originofchange + ' picked "' + serverlotteryframes[someid].options[serverlotteryframes[someid].currentindex] + '" from lottery.');
 		}
 }
 

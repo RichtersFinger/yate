@@ -1,3 +1,7 @@
+1.12.1
+- fixed bug where TTS did not play for new pick in lottery element
+- fixed potential cause of server crash when deleting a running timer
+
 1.12
 * added urgency sfx option
 * linking timer to lottery allows to restart timer via lottery pick
