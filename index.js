@@ -12,7 +12,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.12";
+const version = "1.12.2";
 
 const thispersondoesnotexisturl = "https://thispersondoesnotexist.com/image";
 
@@ -278,7 +278,22 @@ welcome.on('connection', function (socket) {
 		}
 		if (userplayerId === 0) {
 			if (!gameoptions.includes(option.replace(/\s/g, '').replace(/,/g, ''))) {
-				gameoptions.push(option.replace(/\s/g, '').replace(/,/g, ''));
+				if (!option.includes("cardturnangleinc")) {
+					gameoptions.push(option.replace(/\s/g, '').replace(/,/g, ''));
+				} else {
+					var searchfor = option.split('cardturnangleinc')[0] + "cardturnangleinc";
+					var wasreplaced = false;
+					for (var i = 0; i < gameoptions.length; i++) {
+						if (gameoptions[i].includes(searchfor)) {
+							gameoptions[i] = option.replace(/\s/g, '').replace(/,/g, '');
+							wasreplaced = true;
+							break;
+						}
+					}
+					if (!wasreplaced) {
+						gameoptions.push(option.replace(/\s/g, '').replace(/,/g, ''));
+					}
+				}
 				console.log('current gameoptions:', gameoptions);
 				socket.emit('gameoptions_update', gameoptions);
 				socket.broadcast.emit('gameoptions_update', gameoptions);
@@ -535,6 +550,27 @@ welcome.on('connection', function (socket) {
 		}
 		if (userplayerId === 0) {
 			if (serverdecks[somedeckid]) {
+				var newgameoptions = gameoptions; 
+				for (var i = 0; i < gameoptions.length; i++) {
+					if (gameoptions[i].includes("d" + somedeckid + "cardturnangleinc")) {
+						var index = newgameoptions.indexOf(gameoptions[i]);
+						if (index > -1) {
+							newgameoptions.splice(index, 1);
+						}
+					}
+				}
+				var index = newgameoptions.indexOf("d" + somedeckid + "dragtotop");
+				if (index > -1) {
+					newgameoptions.splice(index, 1);
+				}
+				var index = newgameoptions.indexOf("d" + somedeckid + "randomizeangles");
+				if (index > -1) {
+					newgameoptions.splice(index, 1);
+				}
+				gameoptions = newgameoptions;
+				console.log('current gameoptions:', gameoptions);
+				socket.emit('gameoptions_update', gameoptions);
+				socket.broadcast.emit('gameoptions_update', gameoptions);
 				delete serverdecks[somedeckid];
 			}
 		}

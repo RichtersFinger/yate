@@ -78,6 +78,7 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 * **Change Indicator on Game Elements**: Game elements that have been changed but not pushed to the server yet are highlighted by a blinking border.
 
 ### Recent Fixes
+* **card games**: fixed some issues when using game option-related settings like drag-to-top
 * **canvas rectangles**: removed bug where rectangles were deleted on resize
 * **more various changes**: see file `changelog.log` for details
 * **various minor fixes**: fixed bugged `Marker` descriptions, ..
