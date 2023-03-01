@@ -1,3 +1,6 @@
+1.12.4
+- switched to using api.ipify.org to determine public ip due to vulnerabilities in external-ip package
+
 1.12.3
 - updated die roll sfx
 

@@ -6,7 +6,7 @@ This project was initiated due to restrictions regarding personal contacts in ea
 Originally, yate was intended as an engine solely for playing Pen&Paper games.
 However, yate has since grown to support many more game elements (like cards or lotteries) needed up to the point where most games can be played out-of-the-box.
 Its advantage compared to other board game simulations is the compatibility since only a modern browser is required to play.
-Simply use a search engine to find an image of your favourite board game and/or other materials needed and start playing (see for example the [yate vanilla card deck](https://drive.google.com/drive/folders/1ldPSZmPTsI8vQOFMBe-Gam9nXgMdhJY7) or [game of dice board](https://drive.google.com/drive/u/0/folders/1mlzNO0OydegW90fW3UdSw6i1B1lS8LK7)).
+Simply use a search engine to find an image of your favourite board game and/or other materials needed and start playing (see for example the [yate vanilla card deck](https://drive.google.com/drive/folders/11yqADr7aCYuwYoOLXXM1J0th-CLBmHYR) or [game of dice board](https://drive.google.com/drive/folders/1pG4pD0DvSxBVgI5RGgImXVmG2dzQ5-vl)).
 Also have a look at the [YouTube channel](https://www.youtube.com/channel/UC_QIouG5f1K7kbNoxriW3LA) for a [trailer](https://youtu.be/Tz774QcYZ0E) and [demos](https://www.youtube.com/playlist?list=PL_T05W_uwBK1Fsq8mLjbVHRR-kKcc4KXz) for the setup and game management.
 
 [<p align="center"><img src="http://img.youtube.com/vi/Tz774QcYZ0E/0.jpg"></p>](https://youtu.be/Tz774QcYZ0E)
@@ -30,9 +30,9 @@ The host of the game, i.e. the person running the server (this does not need to 
 
    (Optional: I recommend to add the binary directory of Node.js to your path variable<sup>a</sup>.)
 2. Download the contents of this repository and move them into a clean directory.
-3. Open a shell/terminal in the newly created yate directory<sup>b</sup>. Execute `npm` to install the components `express`, `socket.io`, and `external-ip` using the command
+3. Open a shell/terminal in the newly created yate directory<sup>b</sup>. Execute `npm` to install the components `express` and `socket.io` using the command
    ```console
-   $ <path-to-npm>/npm install express socket.io external-ip
+   $ <path-to-npm>/npm install express socket.io
    ```
 4. Test the server by issuing
    ```console

@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
-var http = require('https');
+var http = require('http');
+var https = require('https');
 var server = require('http').Server(app);
 var io = require('socket.io')(server, {
 	  pingInterval: 25000,
@@ -12,7 +13,7 @@ var io = require('socket.io')(server, {
 const path = require('path');
 const fs = require('fs');
 
-const version = "1.12.3";
+const version = "1.12.4";
 
 const thispersondoesnotexisturl = "https://thispersondoesnotexist.com/image";
 
@@ -36,21 +37,19 @@ var playersloggedin = [];
 
 var playernotes = {};
 
+const publicipAPI = 'api.ipify.org';
 const port = 8080;
 var serverip = 0;
+http.get({'host': publicipAPI, 'port': 80, 'path': '/'}, function(resp) {
+  resp.on('data', function(ip) {
+    serverip = ip;
+		console.log("Copy-able address: " + serverip + ":" + port);
+  });
+}).on('error', function(err) {
+	console.log("public IP address API unavailable.. maybe check url definition 'publicipAPI' in file 'index.js'");
+});
 server.listen(port, function(){
-	//npm install external-ip
-	const getIP = require('external-ip')();
-	getIP((err, ip) => {
-	    if (err) {
-	        // every service in the list has failed
-	        throw err;
-	    }
-	    serverip = ip;
-	    console.log('Listening on local port', port);
-	    console.log('Copy-able address: ' + ip + ":" + port);
-	});
-
+	console.log('Listening on local port', port);
 
 	var interval = 5 * 60 * 1000;
 	setTimeout(function(){backups(interval);}, interval);
@@ -490,7 +489,7 @@ welcome.on('connection', function (socket) {
 			handlenotloggedinwarning(socket, "Not logged in - please sign back in.");
 		}
 		if (userplayerId === 0) {
-			http.get(thispersondoesnotexisturl, (image) => {
+			https.get(thispersondoesnotexisturl, (image) => {
 			    image.setEncoding('base64');
 			    body = "data:" + image.headers["content-type"] + ";base64,";
 			    image.on('data', (data) => { body += data});
