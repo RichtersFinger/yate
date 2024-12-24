@@ -78,6 +78,7 @@ This script will search for compatible image files (jpg or png) in your `img/` d
 * **Change Indicator on Game Elements**: Game elements that have been changed but not pushed to the server yet are highlighted by a blinking border.
 
 ### Recent Fixes
+* **jQuery migration**: migrated to jQuery 3.7
 * **die roll sfx**: updated die roll sfx
 * **card games**: fixed some issues when using game option-related settings like drag-to-top
 * **canvas rectangles**: removed bug where rectangles were deleted on resize
