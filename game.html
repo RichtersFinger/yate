@@ -3,22 +3,21 @@
 <head>
 <meta charset="utf-8" />
 <link href='https://fonts.googleapis.com/css?family=Cinzel Decorative' rel='stylesheet'>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="/socket.io/socket.io.js"></script>
 
-
- <!-- Context menu https://swisnl.github.io/jQuery-contextMenu/ -->
+<!-- Context menu https://swisnl.github.io/jQuery-contextMenu/ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.9.2/jquery.contextMenu.min.js" integrity="sha512-kvg/Lknti7OoAw0GqMBP8B+7cGHvp4M9O9V6nAYG91FZVDMW3Xkkq5qrdMhrXiawahqU7IZ5CNsY/wWy1PpGTQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.9.2/jquery.contextMenu.css" integrity="sha512-EF5k2tHv4ShZB7zESroCVlbLaZq2n8t1i8mr32tgX0cyoHc3GfxuP7IoT8w/pD+vyoq7ye//qkFEqQao7Ofrag==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
- <!-- CircleType is used for arcing labels on an image -->
+<!-- CircleType is used for arcing labels on an image -->
 <script src="https://cdn.jsdelivr.net/gh/peterhry/CircleType@2.3.1/dist/circletype.min.js"></script>
 
 <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.22/fabric.min.js'></script>
 
 <link rel="icon" href="img/_server_/logo.ico" type="image/x-icon">
 
-	 <!-- canvas{border:1px solid black; background-color: white;}-->
 <style>
 	body{ background-color: white; overflow: hidden; display: block; font-family: '';font-size: 18px;}
 	.loader {
@@ -316,7 +315,7 @@
 	<img id="gamedivdetailimageimg" style=" position: absolute"></img>
     </div>
     <div id="controlsdivcontainer" style="background: gray; background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; overflow: hidden; visibility: hidden; z-index: 1">
-		 <div id="controlsdiv" style="background: rgba(230,230,230,1.0); width: 50%; height: 80%;  position: fixed; top: 10%; left: 25%; overflow-x: auto; overflow-y: auto; border-radius: 10px; visibility: ">
+		 <div id="controlsdiv" style="background: rgba(230,230,230,1.0); width: 50%; height: 80%;  position: fixed; top: 10%; left: 25%; overflow-x: auto; overflow-y: auto; border-radius: 10px; visibility: hidden">
 			 <img id="controlsdivclose" src="img/_server_/closeicon.png" style="width: 30px; height: 30px; position: absolute; top: 5px; right: 5px"></img>
 			 <h2>Controls</h2>
 			 <table id="controlstable" style="width: 80%; height: 80%; padding-left: 10%; text-align: left">
@@ -363,7 +362,6 @@
 			 </table>
 		 </div>
 	 </div>
-
 
  <script src="lib/animatedpointer.js"></script>
  <script src="lib/LinkedList.js"></script>
